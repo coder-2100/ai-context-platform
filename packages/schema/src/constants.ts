@@ -31,6 +31,7 @@ export const PackageType = {
   DOMAINS: 'domains',
   PLAYBOOKS: 'playbooks',
   META: 'meta',
+  TEMPLATES: 'templates',
 } as const
 
 export type PackageType = (typeof PackageType)[keyof typeof PackageType]
