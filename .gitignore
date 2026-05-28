@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.DS_Store
+coverage/
+.vitepress/cache/
+.vitepress/dist/
+docs/src/assets/rules/
+docs/src/assets/skills/
+docs/src/assets/agents/
+docs/src/assets/domains/
+docs/src/assets/playbooks/
