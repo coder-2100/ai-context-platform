@@ -1,0 +1,209 @@
+{
+  "$ref": "#/definitions/manifestSchema",
+  "definitions": {
+    "manifestSchema": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "string",
+          "pattern": "^\\d+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[\\w.]+)?(\\+[\\w.]+)?$"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "rules",
+            "skills",
+            "agents",
+            "domains",
+            "playbooks",
+            "meta"
+          ]
+        },
+        "layer": {
+          "type": "string",
+          "enum": [
+            "core",
+            "stack",
+            "domain",
+            "project",
+            "runtime"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entry": {
+          "type": "object",
+          "properties": {
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "skills": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "agents": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "domains": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "playbooks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "templates": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            }
+          },
+          "additionalProperties": false
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ],
+          "default": "medium"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "compatibleTools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "minCLIVersion": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        },
+        "appliesTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "pattern": "^[\\^~]?\\d+\\.\\d+\\.\\d+(-[\\w.]+)?(\\+[\\w.]+)?$|^\\d+\\.\\d+\\.\\d+(-[\\w.]+)?(\\+[\\w.]+)?$|^>=?\\d+(\\.\\d+)?(\\.\\d+)?$"
+              },
+              "optional": {
+                "type": "boolean",
+                "default": false
+              }
+            },
+            "required": [
+              "name",
+              "version"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "peerDependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "name",
+              "version"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "extends": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "overrides": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "name",
+        "version",
+        "type",
+        "layer",
+        "description",
+        "entry"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

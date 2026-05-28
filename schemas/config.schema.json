@@ -1,0 +1,140 @@
+{
+  "$ref": "#/definitions/configSchema",
+  "definitions": {
+    "configSchema": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "default": ""
+        },
+        "packages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "tooling": {
+          "type": "object",
+          "properties": {
+            "claude-code": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "deploy": {
+                  "type": "boolean",
+                  "default": false
+                }
+              },
+              "required": [
+                "enabled"
+              ],
+              "additionalProperties": false,
+              "default": {
+                "enabled": true,
+                "deploy": true
+              }
+            },
+            "codex": {
+              "$ref": "#/definitions/configSchema/properties/tooling/properties/claude-code",
+              "default": {
+                "enabled": true,
+                "deploy": true
+              }
+            },
+            "trae": {
+              "$ref": "#/definitions/configSchema/properties/tooling/properties/claude-code",
+              "default": {
+                "enabled": false,
+                "deploy": false
+              }
+            },
+            "gemini": {
+              "$ref": "#/definitions/configSchema/properties/tooling/properties/claude-code",
+              "default": {
+                "enabled": false,
+                "deploy": false
+              }
+            }
+          },
+          "additionalProperties": false,
+          "default": {
+            "claude-code": {
+              "enabled": true,
+              "deploy": true
+            },
+            "codex": {
+              "enabled": true,
+              "deploy": true
+            },
+            "trae": {
+              "enabled": false,
+              "deploy": false
+            },
+            "gemini": {
+              "enabled": false,
+              "deploy": false
+            }
+          }
+        },
+        "budget": {
+          "type": "object",
+          "properties": {
+            "indexBudget": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "default": 3000
+            },
+            "perTool": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "indexBudget": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "indexBudget"
+                ],
+                "additionalProperties": false
+              },
+              "default": {}
+            }
+          },
+          "additionalProperties": false,
+          "default": {
+            "indexBudget": 3000,
+            "perTool": {}
+          }
+        }
+      },
+      "required": [
+        "project"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
