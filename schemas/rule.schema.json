@@ -1,0 +1,46 @@
+{
+  "$ref": "#/definitions/ruleSchema",
+  "definitions": {
+    "ruleSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ],
+          "default": "medium"
+        },
+        "layer": {
+          "type": "string",
+          "enum": [
+            "core",
+            "stack",
+            "domain",
+            "project",
+            "runtime"
+          ]
+        },
+        "appliesTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
