@@ -1,0 +1,26 @@
+{
+  "name": "ai-context-platform",
+  "private": true,
+  "description": "企业级 AI Coding 知识管理与运行时系统",
+  "license": "MIT",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "validate": "tsx scripts/validate-manifest.ts",
+    "sync-versions": "tsx scripts/sync-versions.ts",
+    "generate:schema": "tsx scripts/generate-json-schema.ts",
+    "docs:dev": "pnpm --filter @ai-context/docs dev",
+    "docs:build": "pnpm --filter @ai-context/docs build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
