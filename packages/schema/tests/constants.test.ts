@@ -36,9 +36,10 @@ describe('PackageType', () => {
     expect(PackageType.DOMAINS).toBe('domains')
     expect(PackageType.PLAYBOOKS).toBe('playbooks')
     expect(PackageType.META).toBe('meta')
+    expect(PackageType.TEMPLATES).toBe('templates')
   })
 
-  it('恰好有 6 个值', () => {
-    expect(Object.values(PackageType)).toHaveLength(6)
+  it('恰好有 7 个值', () => {
+    expect(Object.values(PackageType)).toHaveLength(7)
   })
 })
