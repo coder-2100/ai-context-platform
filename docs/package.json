@@ -1,0 +1,13 @@
+{
+  "name": "@ai-context/docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev src",
+    "build": "vitepress build src",
+    "preview": "vitepress preview src"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.0"
+  }
+}
