@@ -23,6 +23,13 @@
     "indentWidth": 2
   },
   "files": {
-    "ignore": ["node_modules", "dist", "*.min.js", "coverage", ".vitepress"]
+    "ignore": [
+      "node_modules",
+      "dist",
+      "*.min.js",
+      "coverage",
+      ".vitepress",
+      "schemas"
+    ]
   }
 }

@@ -3,3 +3,23 @@ packages:
   - 'packages/cli'
   - 'packages/assets/*'
   - 'docs'
+
+catalog:
+  # TypeScript & 构建
+  typescript: "5.9.3"
+  tsup: "8.5.1"
+
+  # 测试
+  vitest: "2.1.9"
+
+  # Schema & 验证
+  zod: "3.25.76"
+  zod-to-json-schema: "3.25.2"
+
+  # 文档
+  vitepress: "1.6.4"
+
+  # 工具链
+  "@biomejs/biome": "1.9.4"
+  tsx: "4.22.3"
+  yaml: "2.9.0"

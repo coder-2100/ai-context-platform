@@ -1,5 +1,5 @@
 {
-  "name": "@ai-context/schema",
+  "name": "@coder-2100/schema",
   "version": "0.1.0",
   "description": "AI Context Platform 共享 Zod schema 和 TypeScript 类型",
   "license": "MIT",
@@ -27,11 +27,12 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "zod": "^3.24.0"
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "tsup": "^8.3.0",
-    "vitest": "^2.1.0"
+    "tsup": "catalog:",
+    "vitest": "catalog:",
+    "zod-to-json-schema": "catalog:"
   },
   "peerDependencies": {
     "typescript": ">=5.0.0"

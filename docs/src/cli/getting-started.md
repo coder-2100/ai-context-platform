@@ -3,7 +3,7 @@
 ## 安装
 
 ```bash
-npm install -g @ai-context/cli
+npm install -g @coder-2100/cli
 ```
 
 ## 初始化项目
@@ -17,7 +17,7 @@ ai-context init
 ## 添加包
 
 ```bash
-ai-context add @ai-context/core-engineering
+ai-context add @coder-2100/core-engineering
 ```
 
 ## 构建运行时上下文

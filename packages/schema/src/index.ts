@@ -1,11 +1,11 @@
-// @ai-context/schema — 共享 schema 和类型
-export * from './constants'
-export * from './task'
-export * from './manifest'
-export * from './rule'
-export * from './skill'
-export * from './agent'
-export * from './adapter'
-export * from './config'
-export * from './lockfile'
-export * from './validate-manifest'
+// @coder-2100/schema — 共享 schema 和类型
+export * from "./constants";
+export * from "./task";
+export * from "./manifest";
+export * from "./rule";
+export * from "./skill";
+export * from "./agent";
+export * from "./adapter";
+export * from "./config";
+export * from "./lockfile";
+export * from "./validate-manifest";
