@@ -1,5 +1,5 @@
 {
-  "name": "@ai-context/docs",
+  "name": "@coder-2100/docs",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,6 +8,6 @@
     "preview": "vitepress preview src"
   },
   "devDependencies": {
-    "vitepress": "^1.6.0"
+    "vitepress": "catalog:"
   }
 }
