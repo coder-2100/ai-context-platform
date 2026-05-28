@@ -5,6 +5,12 @@ dist/
 coverage/
 .vitepress/cache/
 .vitepress/dist/
+
+.claude/
+CLAUDE.md
+.superpowers/
+
+# 为文档自动生成的
 docs/src/assets/rules/
 docs/src/assets/skills/
 docs/src/assets/agents/
