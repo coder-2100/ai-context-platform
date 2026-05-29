@@ -1,0 +1,18 @@
+{
+  "name": "@coder-2100/core-engineering",
+  "version": "1.0.0",
+  "description": "通用工程编码规范",
+  "license": "MIT",
+  "type": "module",
+  "main": "manifest.yaml",
+  "files": [
+    "manifest.yaml",
+    "rules/",
+    "README.md"
+  ],
+  "keywords": ["ai-context", "rules", "core", "engineering", "standards"],
+  "aiContext": {
+    "type": "rules",
+    "layer": "core"
+  }
+}
