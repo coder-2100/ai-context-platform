@@ -1,0 +1,35 @@
+schemaVersion: "1"
+name: core-engineering
+version: 1.0.0
+type: rules
+layer: core
+description: "通用工程编码规范"
+priority: high
+tags:
+  - engineering
+  - standards
+  - clean-code
+compatibleTools:
+  - claude-code
+  - codex
+  - trae
+  - gemini
+author: "ai-context-platform"
+license: "MIT"
+
+entry:
+  rules:
+    - rules/coding-standards.md
+  skills: []
+  agents: []
+  domains: []
+  playbooks: []
+  templates: []
+
+appliesTo:
+  - review
+  - implement
+  - debug
+  - migration
+  - architecture
+  - test
