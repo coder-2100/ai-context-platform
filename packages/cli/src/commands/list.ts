@@ -3,12 +3,14 @@ import { RegistryClient } from '../core/registry-client'
 import chalk from 'chalk'
 import type { InstalledPackage } from '../core/package-manager'
 
+/** list 命令的选项 */
 export interface ListOptions {
   projectDir: string
   assetsDir: string
   verbose?: boolean
 }
 
+/** 列出已安装的知识资产包，verbose 模式显示 layer/type/description */
 export async function listCommand(options: ListOptions): Promise<InstalledPackage[]> {
   const registry = new RegistryClient({ scope: '@coder-2100', registry: 'https://registry.npmjs.org' })
   const pm = new PackageManager({

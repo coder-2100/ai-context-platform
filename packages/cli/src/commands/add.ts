@@ -2,12 +2,14 @@ import { PackageManager } from '../core/package-manager'
 import { RegistryClient } from '../core/registry-client'
 import chalk from 'chalk'
 
+/** add 命令的选项 */
 export interface AddOptions {
   projectDir: string
   packageNames: string[]
   assetsDir: string
 }
 
+/** 添加知识资产包到项目，更新 config.yaml 和 lock.yaml */
 export async function addCommand(options: AddOptions): Promise<void> {
   const registry = new RegistryClient({ scope: '@coder-2100', registry: 'https://registry.npmjs.org' })
   const pm = new PackageManager({

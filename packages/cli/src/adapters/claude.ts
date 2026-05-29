@@ -3,10 +3,12 @@ import { CLAUDE_CODE_CAPABILITIES } from './types'
 import { buildIndex } from '../engine/index-builder'
 import type { ExtractedContent } from '../engine/content-extraction'
 
+/** Claude Code 适配器，将内容渲染为 CLAUDE.md 索引 + .ai/runtime/ 目录下的内容文件 */
 export class ClaudeCodeAdapter implements Adapter {
   name = 'claude-code' as const
   capabilities = CLAUDE_CODE_CAPABILITIES
 
+  /** 渲染适配器输出：生成索引内容和内容文件列表 */
   render(
     input: AdapterInput,
     contents: ExtractedContent[],
