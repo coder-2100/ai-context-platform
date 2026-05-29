@@ -1,0 +1,47 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 构建
+        run: pnpm build
+
+      - name: 测试
+        run: pnpm test
+
+      - name: 发布 schema 包
+        run: pnpm --filter @coder-2100/schema publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 发布 CLI 包
+        run: pnpm --filter @coder-2100/cli publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
