@@ -3,17 +3,31 @@ name: Publish
 on:
   push:
     tags:
-      - 'v*'
+      - '@coder-2100/*@*'
+
+concurrency: publish-${{ github.ref }}
 
 jobs:
   publish:
+    name: Build & Publish
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 解析 tag 获取包名和版本
+        id: package
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          # @coder-2100/schema@0.1.0 → name=@coder-2100/schema, version=0.1.0
+          NAME=$(echo "$TAG" | sed 's/@[^@]*$//')
+          VERSION=$(echo "$TAG" | sed 's/.*@//')
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: 安装 pnpm
         uses: pnpm/action-setup@v4
@@ -36,12 +50,7 @@ jobs:
       - name: 测试
         run: pnpm test
 
-      - name: 发布 schema 包
-        run: pnpm --filter @coder-2100/schema publish --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 发布 CLI 包
-        run: pnpm --filter @coder-2100/cli publish --no-git-checks
+      - name: 发布
+        run: pnpm --filter ${{ steps.package.outputs.name }} publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
