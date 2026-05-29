@@ -23,3 +23,11 @@ catalog:
   "@biomejs/biome": "1.9.4"
   tsx: "4.22.3"
   yaml: "2.9.0"
+
+  # CLI 依赖
+  commander: "13.1.0"
+  "@inquirer/prompts": "7.5.3"
+  chalk: "5.4.1"
+  ora: "8.2.0"
+  js-tiktoken: "1.0.19"
+  "gray-matter": "4.0.3"

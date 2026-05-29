@@ -1,0 +1,46 @@
+{
+  "name": "@coder-2100/cli",
+  "version": "0.1.0",
+  "description": "AI Context Platform CLI 工具",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "ai-context": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@coder-2100/schema": "workspace:*",
+    "commander": "catalog:",
+    "@inquirer/prompts": "catalog:",
+    "chalk": "catalog:",
+    "ora": "catalog:",
+    "yaml": "catalog:",
+    "js-tiktoken": "catalog:",
+    "gray-matter": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "tsup": "catalog:",
+    "vitest": "catalog:",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  }
+}
