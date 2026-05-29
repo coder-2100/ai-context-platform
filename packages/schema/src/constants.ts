@@ -1,3 +1,4 @@
+/** 知识资产包的分层架构，从底层到顶层依次为 core → runtime */
 export const Layer = {
   CORE: "core",
   STACK: "stack",
@@ -8,6 +9,7 @@ export const Layer = {
 
 export type Layer = (typeof Layer)[keyof typeof Layer];
 
+/** 优先级等级，数值越高越重要，用于控制索引生成和内容加载顺序 */
 export const Priority = {
   CRITICAL: "critical",
   HIGH: "high",
@@ -17,6 +19,7 @@ export const Priority = {
 
 export type Priority = (typeof Priority)[keyof typeof Priority];
 
+/** 优先级对应的权重分数，用于排序和预算分配 */
 export const PRIORITY_WEIGHTS: Record<Priority, number> = {
   critical: 100,
   high: 75,
@@ -24,6 +27,7 @@ export const PRIORITY_WEIGHTS: Record<Priority, number> = {
   low: 25,
 };
 
+/** 知识资产包的类型分类 */
 export const PackageType = {
   RULES: "rules",
   SKILLS: "skills",

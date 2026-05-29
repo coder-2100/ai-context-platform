@@ -5,12 +5,14 @@ import { RegistryClient } from '../core/registry-client'
 import { writeIndexFile } from '../engine/index-builder'
 import chalk from 'chalk'
 
+/** init 命令的选项 */
 export interface InitOptions {
   projectDir: string
   projectName: string
   assetsDir?: string
 }
 
+/** 初始化项目：创建 .ai/ 目录结构、config.yaml 和 CLAUDE.md 索引文件 */
 export async function initCommand(options: InitOptions): Promise<void> {
   const aiDir = join(options.projectDir, '.ai')
   if (existsSync(join(aiDir, 'config.yaml'))) {
@@ -38,6 +40,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
   console.log(`\n运行 ${chalk.yellow('ai-context add')} 安装知识资产包`)
 }
 
+/** 从 CLI 包位置向上查找 monorepo 中的 assets 目录 */
 function findAssetsDir(): string {
   // MVP 阶段：使用 monorepo 内的 assets 目录
   // 从 CLI 包向上查找 assets 目录

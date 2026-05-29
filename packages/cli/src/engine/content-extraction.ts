@@ -4,6 +4,7 @@ import matter from 'gray-matter'
 import type { Priority } from '@coder-2100/schema'
 import { RegistryClient } from '../core/registry-client'
 
+/** 从知识资产包中提取的结构化内容，包含类型、元信息和正文 */
 export interface ExtractedContent {
   type: 'rule' | 'skill' | 'agent' | 'domain' | 'playbook'
   id: string
@@ -14,11 +15,13 @@ export interface ExtractedContent {
   sourcePath: string
 }
 
+/** Markdown 文件解析结果，分离 frontmatter 元数据和正文 */
 export interface ParsedFrontmatter {
   frontmatter: Record<string, unknown>
   body: string
 }
 
+/** 解析 Markdown 文件的 frontmatter 和正文 */
 export function parseFrontmatter(content: string): ParsedFrontmatter {
   const parsed = matter(content)
   return {
@@ -27,6 +30,7 @@ export function parseFrontmatter(content: string): ParsedFrontmatter {
   }
 }
 
+/** 清单 entry 字段名到内容类型的映射 */
 const ENTRY_TYPE_MAP: Record<string, ExtractedContent['type']> = {
   rules: 'rule',
   skills: 'skill',
@@ -35,6 +39,7 @@ const ENTRY_TYPE_MAP: Record<string, ExtractedContent['type']> = {
   playbooks: 'playbook',
 }
 
+/** 从指定包中提取所有内容，解析 frontmatter 并构建 ExtractedContent 列表 */
 export async function extractContent(
   assetsDir: string,
   packageName: string,

@@ -1,15 +1,18 @@
 import { z } from "zod";
 
+/** 项目配置中的包引用 */
 const PackageRefSchema = z.object({
   name: z.string().min(1),
   version: z.string().optional(),
 });
 
+/** 单个 AI 工具的启用和部署配置 */
 const ToolingEntrySchema = z.object({
   enabled: z.boolean(),
   deploy: z.boolean().default(false),
 });
 
+/** 索引生成预算配置，控制输出内容的 token 上限 */
 const BudgetSchema = z
   .object({
     indexBudget: z.number().int().positive().default(3000),
@@ -22,6 +25,7 @@ const BudgetSchema = z
   })
   .default({ indexBudget: 3000, perTool: {} });
 
+/** 项目配置 schema，定义 .ai/config.yaml 的结构 */
 export const ConfigSchema = z.object({
   project: z.string().min(1),
   description: z.string().default(""),
@@ -45,4 +49,5 @@ export const ConfigSchema = z.object({
   budget: BudgetSchema,
 });
 
+/** 项目配置解析后的类型 */
 export type Config = z.infer<typeof ConfigSchema>;

@@ -1,21 +1,26 @@
 import { z } from "zod";
 import { Layer, PackageType, Priority } from "./constants";
 
+/** 语义化版本号正则，支持 pre-release 和 build metadata */
 const SEMVER_REGEX = /^\d+\.\d+\.\d+(-[\w.]+)?(\+[\w.]+)?$/;
+/** 语义化版本范围正则，支持 ^/~ 前缀和比较运算符 */
 const SEMVER_RANGE_REGEX =
   /^[\^~]?\d+\.\d+\.\d+(-[\w.]+)?(\+[\w.]+)?$|^\d+\.\d+\.\d+(-[\w.]+)?(\+[\w.]+)?$|^>=?\d+(\.\d+)?(\.\d+)?$/;
 
+/** 包的运行时依赖声明 */
 const DependencySchema = z.object({
   name: z.string().min(1),
   version: z.string().regex(SEMVER_RANGE_REGEX, "无效的 semver range"),
   optional: z.boolean().default(false),
 });
 
+/** 包的对等依赖声明 */
 const PeerDependencySchema = z.object({
   name: z.string().min(1),
   version: z.string().min(1),
 });
 
+/** 知识资产包的清单 schema，描述包的元信息、入口文件和依赖关系 */
 export const ManifestSchema = z.object({
   // 必填字段
   schemaVersion: z.string().regex(/^\d+$/, "Schema version 必须是数字字符串"),

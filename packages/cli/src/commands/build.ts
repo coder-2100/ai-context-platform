@@ -10,6 +10,7 @@ import chalk from 'chalk'
 import ora from 'ora'
 import type { ResolvedPackage } from '@coder-2100/schema'
 
+/** build 命令的选项 */
 export interface BuildOptions {
   projectDir: string
   task: string
@@ -19,6 +20,7 @@ export interface BuildOptions {
   verbose?: boolean
 }
 
+/** 构建运行时上下文：提取内容 → 适配器渲染 → 写入索引和内容文件 */
 export async function buildCommand(options: BuildOptions): Promise<void> {
   const spinner = ora('Building runtime context...').start()
 

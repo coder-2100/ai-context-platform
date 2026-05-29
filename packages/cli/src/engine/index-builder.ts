@@ -3,9 +3,12 @@ import { dirname } from 'node:path'
 import type { ExtractedContent } from './content-extraction'
 import { PRIORITY_WEIGHTS } from '@coder-2100/schema'
 
+/** 索引文件中托管内容的起始标记 */
 export const MARKER_START = '<!-- AI-CONTEXT:INDEX:START -->'
+/** 索引文件中托管内容的结束标记 */
 export const MARKER_END = '<!-- AI-CONTEXT:INDEX:END -->'
 
+/** 构建索引的选项 */
 export interface BuildIndexOptions {
   contents: ExtractedContent[]
   task: string
@@ -13,6 +16,7 @@ export interface BuildIndexOptions {
   runtimeDir: string
 }
 
+/** 根据内容列表构建结构化索引，包含 Core Rules、Current Task 和 Available Resources 三个区域 */
 export function buildIndex(options: BuildIndexOptions): string {
   const { contents, task, projectName, runtimeDir } = options
 
@@ -97,6 +101,7 @@ export function buildIndex(options: BuildIndexOptions): string {
   return lines.join('\n').trim()
 }
 
+/** 将生成的内容写入索引文件，自动处理标记区域的新增和替换 */
 export function writeIndexFile(filePath: string, generatedContent: string): void {
   const dir = dirname(filePath)
   if (!existsSync(dir)) {
@@ -125,11 +130,13 @@ export function writeIndexFile(filePath: string, generatedContent: string): void
   writeFileSync(filePath, content, 'utf-8')
 }
 
+/** 从规则内容中提取首行摘要 */
 function extractRuleSummary(content: string): string {
   const lines = content.split('\n').filter((l) => l.trim() && !l.startsWith('#'))
   return lines[0]?.replace(/^[-*]\s*/, '').trim() || ''
 }
 
+/** 从内容中提取首段描述文本，截断至 80 字符 */
 function extractDescription(content: string): string {
   const lines = content.split('\n')
   for (const line of lines) {
@@ -141,6 +148,7 @@ function extractDescription(content: string): string {
   return ''
 }
 
+/** 按内容类型分组 */
 function groupByType(
   contents: ExtractedContent[],
 ): Record<string, ExtractedContent[]> {

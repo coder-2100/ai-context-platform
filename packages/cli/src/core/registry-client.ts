@@ -4,11 +4,13 @@ import { parse as parseYaml } from 'yaml'
 import { ManifestSchema, type Manifest } from '@coder-2100/schema'
 import { createCatalogFromManifests, type CatalogPackage } from './catalog'
 
+/** 注册中心客户端构造选项 */
 export interface RegistryClientOptions {
   scope: string
   registry: string
 }
 
+/** 注册中心客户端：从本地资产目录扫描和解析知识资产包 */
 export class RegistryClient {
   private scope: string
   private registry: string
@@ -18,6 +20,7 @@ export class RegistryClient {
     this.registry = options.registry
   }
 
+  /** 扫描本地资产目录，返回所有可用包的目录 */
   async scanLocalAssets(assetsDir: string): Promise<CatalogPackage[]> {
     if (!existsSync(assetsDir)) return []
 
@@ -35,11 +38,13 @@ export class RegistryClient {
     return createCatalogFromManifests(manifests, this.scope)
   }
 
+  /** 获取指定包的本地清单 */
   async getLocalManifest(assetsDir: string, packageName: string): Promise<Manifest | null> {
     const manifestPath = join(assetsDir, packageName, 'manifest.yaml')
     return this.parseManifest(manifestPath)
   }
 
+  /** 获取指定包的所有内容文件路径 */
   async getLocalContentPaths(assetsDir: string, packageName: string): Promise<string[]> {
     const manifest = await this.getLocalManifest(assetsDir, packageName)
     if (!manifest) return []
@@ -54,6 +59,7 @@ export class RegistryClient {
     return paths
   }
 
+  /** 解析并验证单个 manifest.yaml 文件 */
   parseManifest(manifestPath: string): Manifest | null {
     try {
       const content = readFileSync(manifestPath, 'utf-8')

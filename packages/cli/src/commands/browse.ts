@@ -4,6 +4,7 @@ import { RegistryClient } from '../core/registry-client'
 import { filterCatalog, groupCatalogByLayer, groupCatalogByType, type CatalogPackage } from '../core/catalog'
 import chalk from 'chalk'
 
+/** browse 命令的选项 */
 export interface BrowseOptions {
   projectDir: string
   assetsDir: string
@@ -12,6 +13,7 @@ export interface BrowseOptions {
   tag?: string
 }
 
+/** 浏览可用知识资产包，支持按 layer/type/tag 筛选，交互式选择并安装 */
 export async function browseCommand(options: BrowseOptions): Promise<void> {
   const registry = new RegistryClient({ scope: '@coder-2100', registry: 'https://registry.npmjs.org' })
   const pm = new PackageManager({
@@ -69,6 +71,7 @@ export async function browseCommand(options: BrowseOptions): Promise<void> {
   }
 }
 
+/** 交互式选择并安装包，自动跳过已安装的包 */
 async function selectAndInstall(pm: PackageManager, packages: CatalogPackage[]): Promise<void> {
   const installedNames = new Set(
     pm.isInitialized() ? pm.getConfig().packages.map((p) => p.name) : [],

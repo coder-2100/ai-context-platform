@@ -1,5 +1,6 @@
 import type { Manifest, Layer, PackageType } from '@coder-2100/schema'
 
+/** 目录中的包条目，包含展示和筛选所需的元信息 */
 export interface CatalogPackage {
   name: string
   version: string
@@ -9,12 +10,14 @@ export interface CatalogPackage {
   tags: string[]
 }
 
+/** 目录筛选选项，支持按 layer、type 和 tag 过滤 */
 export interface FilterOptions {
   layer?: Layer
   type?: PackageType
   tag?: string
 }
 
+/** 从清单列表创建目录，自动为包名添加 scope 前缀 */
 export function createCatalogFromManifests(
   manifests: Manifest[],
   scope: string,
@@ -29,6 +32,7 @@ export function createCatalogFromManifests(
   }))
 }
 
+/** 按条件筛选目录中的包 */
 export function filterCatalog(
   packages: CatalogPackage[],
   options: FilterOptions,
@@ -46,6 +50,7 @@ export function filterCatalog(
   return result
 }
 
+/** 按 layer 分组包 */
 export function groupCatalogByLayer(
   packages: CatalogPackage[],
 ): Record<string, CatalogPackage[]> {
@@ -59,6 +64,7 @@ export function groupCatalogByLayer(
   return groups
 }
 
+/** 按 type 分组包 */
 export function groupCatalogByType(
   packages: CatalogPackage[],
 ): Record<string, CatalogPackage[]> {
