@@ -31,3 +31,6 @@ catalog:
   ora: "8.2.0"
   js-tiktoken: "1.0.19"
   "gray-matter": "4.0.3"
+
+  # 类型定义
+  "@types/node": "25.9.1"
