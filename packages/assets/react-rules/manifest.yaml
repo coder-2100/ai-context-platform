@@ -1,0 +1,42 @@
+schemaVersion: "1"
+name: react-rules
+version: 1.0.0
+type: rules
+layer: stack
+description: "React 编码规范和审查规则"
+priority: high
+tags:
+  - react
+  - frontend
+  - hooks
+compatibleTools:
+  - claude-code
+  - codex
+  - trae
+  - gemini
+author: "ai-context-platform"
+license: "MIT"
+
+entry:
+  rules:
+    - rules/hooks.md
+    - rules/components.md
+  skills:
+    - skills/react-review.md
+  agents: []
+  domains: []
+  playbooks: []
+  templates: []
+
+appliesTo:
+  - review
+  - implement
+
+dependencies:
+  - name: "@coder-2100/core-engineering"
+    version: "^1.0.0"
+    optional: false
+
+peerDependencies:
+  - name: "react"
+    version: ">=18.0.0"

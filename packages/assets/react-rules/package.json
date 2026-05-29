@@ -1,0 +1,19 @@
+{
+  "name": "@coder-2100/react-rules",
+  "version": "1.0.0",
+  "description": "React 编码规范和审查规则",
+  "license": "MIT",
+  "type": "module",
+  "main": "manifest.yaml",
+  "files": [
+    "manifest.yaml",
+    "rules/",
+    "skills/",
+    "README.md"
+  ],
+  "keywords": ["ai-context", "rules", "skills", "react", "frontend", "hooks"],
+  "aiContext": {
+    "type": "rules",
+    "layer": "stack"
+  }
+}
