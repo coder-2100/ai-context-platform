@@ -72,5 +72,5 @@ export interface AdapterInput {
 export interface Adapter {
   name: string;
   capabilities: ToolCapabilities;
-  render(input: AdapterInput): AdapterOutput;
+  render(input: AdapterInput, contents: any[], projectName: string): AdapterOutput;
 }
