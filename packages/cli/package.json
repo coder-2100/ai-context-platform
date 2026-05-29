@@ -17,7 +17,9 @@
       }
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -26,19 +28,20 @@
   },
   "dependencies": {
     "@coder-2100/schema": "workspace:*",
-    "commander": "catalog:",
     "@inquirer/prompts": "catalog:",
     "chalk": "catalog:",
+    "commander": "catalog:",
+    "gray-matter": "catalog:",
+    "js-tiktoken": "catalog:",
     "ora": "catalog:",
     "yaml": "catalog:",
-    "js-tiktoken": "catalog:",
-    "gray-matter": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@types/node": "^25.9.1",
     "tsup": "catalog:",
-    "vitest": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "typescript": ">=5.0.0"
