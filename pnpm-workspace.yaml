@@ -34,3 +34,6 @@ catalog:
 
   # 类型定义
   "@types/node": "25.9.1"
+
+  # 版本发布
+  "@changesets/cli": "2.29.4"
