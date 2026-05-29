@@ -52,6 +52,70 @@ pnpm docs:build
 | `pnpm generate:schema` | 生成 JSON Schema |
 | `pnpm sync-versions` | 同步依赖版本 |
 
+## 发布流程
+
+本项目使用 [Changesets](https://github.com/changesets/changesets) 管理版本和发布。
+
+### 日常开发：记录变更意图
+
+完成一个 feature 或 fix 后，创建 changeset：
+
+```bash
+pnpm changeset
+```
+
+交互式选择：
+1. 哪些包受影响（多选）
+2. 版本 bump 类型（patch / minor / major）
+3. 变更描述（写入 changelog）
+
+### 发布流程
+
+```bash
+# 1. 消费 changeset → bump 版本 + 生成 changelog + 同步 manifest.yaml
+pnpm bump
+
+# 2. 提交版本变更
+git add .
+git commit -m "chore: version packages"
+
+# 3. 构建 + 测试 + 发布 + 创建 tag
+pnpm release
+
+# 4. 推送
+git push --follow-tags
+```
+
+### 紧急 hotfix
+
+不需要 changeset 文件，直接手动修改版本号：
+
+```bash
+# 1. 手动修改 package.json 版本
+# 2. 同步 manifest.yaml
+tsx scripts/sync-manifest-versions.ts
+# 3. 提交 + tag + 推送
+git commit -am "chore: release @coder-2100/xxx@x.x.x"
+git tag @coder-2100/xxx@x.x.x
+git push --follow-tags
+```
+
+### 预发布版本（alpha/beta）
+
+```bash
+pnpm changeset pre enter alpha
+pnpm changeset    # 选择 minor → 生成 x.x.x-alpha.0
+pnpm bump
+pnpm release
+
+# 退出 pre-release 模式
+pnpm changeset pre exit
+```
+
+### CI 自动发布
+
+当 tag 格式为 `@coder-2100/*@*` 的 tag 被推送到 GitHub 后，CI 自动构建并发布到 GitHub Packages。
+
 ## 许可证
 
 [MIT](LICENSE)
