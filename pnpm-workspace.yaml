@@ -37,3 +37,6 @@ catalog:
 
   # 版本发布
   "@changesets/cli": "2.29.4"
+
+  # 包脚手架
+  plop: "4.0.1"

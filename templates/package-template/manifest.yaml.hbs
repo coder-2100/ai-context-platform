@@ -1,0 +1,34 @@
+schemaVersion: "1"
+name: {{kebabCase name}}
+version: 0.1.0
+type: {{type}}
+layer: {{layer}}
+description: "{{description}}"
+priority: {{priority}}
+{{#if tags.length}}
+tags:
+{{#each tags}}
+  - {{this}}
+{{/each}}
+{{/if}}
+{{#if compatibleTools.length}}
+compatibleTools:
+{{#each compatibleTools}}
+  - {{this}}
+{{/each}}
+{{/if}}
+{{#if author}}
+author: "{{author}}"
+{{/if}}
+license: "MIT"
+
+entry:
+  {{entryField type}}:
+    - {{entryDir type}}/.gitkeep
+{{#each otherEntries}}
+  {{this}}: []
+{{/each}}
+
+appliesTo: []
+
+dependencies: []
