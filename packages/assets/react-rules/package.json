@@ -5,6 +5,9 @@
   "license": "MIT",
   "type": "module",
   "main": "manifest.yaml",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": ["manifest.yaml", "rules/", "skills/", "README.md"],
   "keywords": ["ai-context", "rules", "skills", "react", "frontend", "hooks"],
   "aiContext": {
