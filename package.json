@@ -15,11 +15,13 @@
     "docs:build": "pnpm --filter @coder-2100/docs build",
     "changeset": "changeset",
     "bump": "pnpm changeset version && tsx scripts/sync-manifest-versions.ts",
-    "release": "pnpm build && pnpm test && pnpm changeset publish"
+    "release": "pnpm build && pnpm test && pnpm changeset publish",
+    "generate": "plop"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
     "@changesets/cli": "catalog:",
+    "plop": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "yaml": "catalog:"

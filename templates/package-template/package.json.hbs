@@ -1,0 +1,17 @@
+{
+  "name": "@coder-2100/{{kebabCase name}}",
+  "version": "0.1.0",
+  "description": "{{description}}",
+  "license": "MIT",
+  "type": "module",
+  "main": "manifest.yaml",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": ["manifest.yaml", "{{entryDir type}}/", "README.md"],
+  "keywords": ["ai-context", "{{type}}", "{{layer}}"{{#each tags}}, "{{this}}"{{/each}}],
+  "aiContext": {
+    "type": "{{type}}",
+    "layer": "{{layer}}"
+  }
+}
