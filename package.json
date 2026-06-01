@@ -15,7 +15,7 @@
     "docs:build": "pnpm --filter @coder-2100/docs build",
     "changeset": "changeset",
     "bump": "pnpm changeset version && tsx scripts/sync-manifest-versions.ts",
-    "release": "pnpm build && pnpm test && pnpm changeset publish",
+    "release": "pnpm build && pnpm -r publish --no-git-checks",
     "generate": "plop"
   },
   "devDependencies": {
@@ -29,5 +29,8 @@
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

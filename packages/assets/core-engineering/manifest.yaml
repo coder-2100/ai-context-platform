@@ -1,9 +1,9 @@
 schemaVersion: "1"
 name: core-engineering
-version: 1.0.0
+version: 1.0.1-beta.0
 type: rules
 layer: core
-description: "通用工程编码规范"
+description: 通用工程编码规范
 priority: high
 tags:
   - engineering
@@ -14,9 +14,8 @@ compatibleTools:
   - codex
   - trae
   - gemini
-author: "ai-context-platform"
-license: "MIT"
-
+author: ai-context-platform
+license: MIT
 entry:
   rules:
     - rules/coding-standards.md
@@ -25,7 +24,6 @@ entry:
   domains: []
   playbooks: []
   templates: []
-
 appliesTo:
   - review
   - implement

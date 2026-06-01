@@ -1,6 +1,6 @@
 {
   "name": "@coder-2100/schema",
-  "version": "0.1.0",
+  "version": "0.1.1-beta.0",
   "description": "AI Context Platform 共享 Zod schema 和 TypeScript 类型",
   "license": "MIT",
   "type": "module",
@@ -22,7 +22,9 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",

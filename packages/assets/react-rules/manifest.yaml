@@ -1,9 +1,9 @@
 schemaVersion: "1"
 name: react-rules
-version: 1.0.0
+version: 1.0.1-beta.0
 type: rules
 layer: stack
-description: "React 编码规范和审查规则"
+description: React 编码规范和审查规则
 priority: high
 tags:
   - react
@@ -14,9 +14,8 @@ compatibleTools:
   - codex
   - trae
   - gemini
-author: "ai-context-platform"
-license: "MIT"
-
+author: ai-context-platform
+license: MIT
 entry:
   rules:
     - rules/hooks.md
@@ -27,16 +26,13 @@ entry:
   domains: []
   playbooks: []
   templates: []
-
 appliesTo:
   - review
   - implement
-
 dependencies:
   - name: "@coder-2100/core-engineering"
-    version: "^1.0.0"
+    version: ^1.0.0
     optional: false
-
 peerDependencies:
-  - name: "react"
+  - name: react
     version: ">=18.0.0"
