@@ -1,8 +1,7 @@
 packages:
-  - 'packages/schema'
-  - 'packages/cli'
-  - 'packages/assets/*'
-  - 'docs'
+  - "packages/schema"
+  - "packages/cli"
+  - "packages/assets/*"
 
 catalog:
   # TypeScript & 构建
@@ -36,7 +35,7 @@ catalog:
   "@types/node": "25.9.1"
 
   # 版本发布
-  "@changesets/cli": "2.29.4"
+  "@changesets/cli": "2.31.0"
 
   # 包脚手架
   plop: "4.0.1"

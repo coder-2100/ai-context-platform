@@ -15,7 +15,7 @@
     "docs:build": "pnpm --filter @coder-2100/docs build",
     "changeset": "changeset",
     "bump": "pnpm changeset version && tsx scripts/sync-manifest-versions.ts",
-    "release": "pnpm build && pnpm -r publish --no-git-checks",
+    "release": "pnpm build && pnpm changeset publish",
     "generate": "plop"
   },
   "devDependencies": {
