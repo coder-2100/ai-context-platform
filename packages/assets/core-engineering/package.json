@@ -6,6 +6,7 @@
   "type": "module",
   "main": "manifest.yaml",
   "publishConfig": {
+    "registry": "https://registry.npmjs.org",
     "access": "public"
   },
   "files": [
