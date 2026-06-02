@@ -51,11 +51,9 @@ jobs:
 
       - name: 安装依赖
         run: pnpm install --frozen-lockfile
-        working-directory: docs
 
       - name: 构建文档
-        run: pnpm build
-        working-directory: docs
+        run: pnpm --filter @coder-2100/docs build
 
       - name: 部署到 GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4

@@ -2,6 +2,7 @@ packages:
   - "packages/schema"
   - "packages/cli"
   - "packages/assets/*"
+  - "docs"
 
 catalog:
   # TypeScript & 构建
