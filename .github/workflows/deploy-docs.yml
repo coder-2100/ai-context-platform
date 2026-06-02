@@ -34,8 +34,13 @@ jobs:
       - name: 安装依赖
         run: pnpm install --no-frozen-lockfile
 
+      - name: 安装文档依赖
+        run: pnpm install --no-frozen-lockfile
+        working-directory: docs
+
       - name: 构建文档
-        run: pnpm docs:build
+        run: pnpm build
+        working-directory: docs
 
       - name: 部署到 gh-pages 分支
         uses: peaceiris/actions-gh-pages@v4
