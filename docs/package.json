@@ -8,6 +8,6 @@
     "preview": "vitepress preview src"
   },
   "devDependencies": {
-    "vitepress": "catalog:"
+    "vitepress": "1.6.4"
   }
 }
