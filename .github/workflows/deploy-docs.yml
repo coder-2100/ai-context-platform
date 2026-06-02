@@ -50,7 +50,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: 安装依赖
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
         working-directory: docs
 
       - name: 构建文档
