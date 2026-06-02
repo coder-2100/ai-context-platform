@@ -50,7 +50,8 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: 安装依赖
-        run: pnpm -C docs install
+        run: pnpm install
+        working-directory: docs
 
       - name: 构建文档
         run: pnpm build
