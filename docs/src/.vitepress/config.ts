@@ -3,7 +3,7 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "AI Context Platform",
   description: "企业级 AI Coding 知识管理",
-  base: "/ai-context-platform/docs/",
+  base: "/ai-context-platform/",
 
   themeConfig: {
     nav: [
