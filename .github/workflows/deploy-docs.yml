@@ -18,33 +18,51 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: 安装 pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
+      - name: 检出代码
+        uses: actions/checkout@v4
 
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
+
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: 获取 pnpm 缓存目录
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: 设置 pnpm 缓存
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: 安装依赖
+        run: pnpm install --no-frozen-lockfile
+
+      - name: 安装文档依赖
         run: pnpm install --no-frozen-lockfile
         working-directory: docs
 
       - name: 构建文档
-        run: pnpm docs:build
+        run: pnpm build
+        working-directory: docs
 
-      - name: 部署到 gh-pages 分支
-        uses: peaceiris/actions-gh-pages@v4
+      - name: 部署到 GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: docs/src/.vitepress/dist
-          target_folder: docs
+          folder: docs/src/.vitepress/dist
+          branch: gh-pages
+          target-folder: docs
