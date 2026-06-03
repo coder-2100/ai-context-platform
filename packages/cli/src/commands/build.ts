@@ -6,7 +6,6 @@ import ora from "ora";
 import { ClaudeCodeAdapter } from "../adapters/claude";
 import { type ToolName, getCapabilities } from "../adapters/types";
 import { PackageManager } from "../core/package-manager";
-import { RegistryClient } from "../core/registry-client";
 import { extractContent } from "../engine/content-extraction";
 import { writeIndexFile } from "../engine/index-builder";
 
@@ -25,18 +24,13 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
   const spinner = ora("Building runtime context...").start();
 
   try {
-    const registry = new RegistryClient({
-      scope: "@coder-2100",
-      registry: "https://registry.npmjs.org",
-    });
     const pm = new PackageManager({
       projectDir: options.projectDir,
       assetsDir: options.assetsDir,
-      registry,
-      cliVersion: "0.1.0",
     });
 
     pm.loadExisting();
+    const config = pm.getConfig();
     const installedPackages = pm.list() as ResolvedPackage[];
 
     if (installedPackages.length === 0) {
@@ -47,15 +41,17 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
     // 提取所有内容
     const allContents = [];
     for (const pkg of installedPackages) {
-      const shortName = pkg.name.replace(/^@coder-2100\//, "");
-      const contents = await extractContent(options.assetsDir, shortName);
+      const contents = await extractContent(
+        options.assetsDir,
+        pkg.name,
+        config.scope,
+      );
       allContents.push(...contents);
     }
 
     // 使用 adapter 渲染输出
     const capabilities = getCapabilities(options.tool);
     const adapter = new ClaudeCodeAdapter();
-    const config = pm.getConfig();
     const output = adapter.render(
       {
         task: options.task,

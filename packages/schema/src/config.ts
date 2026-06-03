@@ -29,6 +29,10 @@ const BudgetSchema = z
 export const ConfigSchema = z.object({
   project: z.string().min(1),
   description: z.string().default(""),
+  /** 资产包目录路径，可通过 init --assets-dir 或 config.yaml 指定 */
+  assetsDir: z.string().optional(),
+  /** 资产包的 npm scope，如 @coder-2100，用于包名与目录名的转换 */
+  scope: z.string().default("@coder-2100"),
   packages: z.array(PackageRefSchema).default([]),
   tooling: z
     .object({
