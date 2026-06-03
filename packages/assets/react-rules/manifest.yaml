@@ -1,6 +1,6 @@
 schemaVersion: "1"
 name: react-rules
-version: 1.0.1-beta.0
+version: 1.1.0-beta.1
 type: rules
 layer: stack
 description: React 编码规范和审查规则
