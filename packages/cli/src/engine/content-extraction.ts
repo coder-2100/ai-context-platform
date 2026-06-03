@@ -39,16 +39,27 @@ const ENTRY_TYPE_MAP: Record<string, ExtractedContent["type"]> = {
   playbooks: "playbook",
 };
 
+/** 将带 scope 的包名转换为目录名 */
+function toShortName(fullName: string, scope: string): string {
+  const prefix = `${scope}/`;
+  if (fullName.startsWith(prefix)) {
+    return fullName.slice(prefix.length);
+  }
+  return fullName;
+}
+
 /** 从指定包中提取所有内容，解析 frontmatter 并构建 ExtractedContent 列表 */
 export async function extractContent(
   assetsDir: string,
   packageName: string,
+  scope = "@coder-2100",
 ): Promise<ExtractedContent[]> {
-  const registry = new RegistryClient({ scope: "@coder-2100", registry: "" });
-  const manifest = await registry.getLocalManifest(assetsDir, packageName);
+  const registry = new RegistryClient({ scope, registry: "" });
+  const shortName = toShortName(packageName, scope);
+  const manifest = await registry.getLocalManifest(assetsDir, shortName);
   if (!manifest) return [];
 
-  const pkgDir = join(assetsDir, packageName);
+  const pkgDir = join(assetsDir, shortName);
   const results: ExtractedContent[] = [];
 
   for (const [entryType, entries] of Object.entries(manifest.entry)) {

@@ -1,4 +1,4 @@
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import type { Config, Lockfile, Manifest } from "@coder-2100/schema";
 import {
@@ -15,14 +15,15 @@ import {
   removePackageFromLockfile,
   saveLockfile,
 } from "./lockfile";
-import type { RegistryClient } from "./registry-client";
+import { RegistryClient } from "./registry-client";
 
 /** PackageManager 构造选项 */
 export interface PackageManagerOptions {
   projectDir: string;
-  assetsDir: string;
-  registry: RegistryClient;
-  cliVersion: string;
+  /** 资产目录路径，add/browse/list/build 等命令必须提供，init 可省略 */
+  assetsDir?: string;
+  /** 资产包的 npm scope，默认 @coder-2100 */
+  scope?: string;
 }
 
 /** 已安装的包信息，包含名称、版本和完整清单 */
@@ -35,8 +36,11 @@ export interface InstalledPackage {
 /** 包管理器：统一管理知识资产包的初始化、安装、移除和查询 */
 export class PackageManager {
   private projectDir: string;
-  private assetsDir: string;
+  private assetsDir: string | undefined;
+  /** 资产包的 npm scope，用于包名与目录名的转换 */
+  private scope: string;
   private registry: RegistryClient;
+  /** CLI 版本号，从 package.json 中自动读取 */
   private cliVersion: string;
   private config: Config | null = null;
   private lockfile: Lockfile | null = null;
@@ -44,12 +48,16 @@ export class PackageManager {
   constructor(options: PackageManagerOptions) {
     this.projectDir = options.projectDir;
     this.assetsDir = options.assetsDir;
-    this.registry = options.registry;
-    this.cliVersion = options.cliVersion;
+    this.scope = options.scope || "@coder-2100";
+    this.registry = new RegistryClient({
+      scope: this.scope,
+      registry: "https://registry.npmjs.org",
+    });
+    this.cliVersion = getCliVersion();
   }
 
-  /** 初始化项目：创建 .ai/ 目录结构、默认配置和锁文件 */
-  async init(projectName: string): Promise<void> {
+  /** 初始化项目：创建 .ai/ 目录结构、默认配置和锁文件，可选保存 assetsDir 和 scope 到配置 */
+  async init(projectName: string, assetsDir?: string): Promise<void> {
     const aiDir = join(this.projectDir, ".ai");
     mkdirSync(aiDir, { recursive: true });
     mkdirSync(join(aiDir, "runtime", "rules"), { recursive: true });
@@ -61,6 +69,10 @@ export class PackageManager {
     mkdirSync(join(aiDir, "logs"), { recursive: true });
 
     this.config = createDefaultConfig(projectName);
+    if (assetsDir) {
+      this.config.assetsDir = assetsDir;
+    }
+    this.config.scope = this.scope;
     saveConfig(join(aiDir, "config.yaml"), this.config);
 
     this.lockfile = createEmptyLockfile(this.cliVersion);
@@ -76,9 +88,9 @@ export class PackageManager {
     for (const name of packageNames) {
       if (existingNames.has(name)) continue;
 
-      const shortName = name.replace(/^@coder-2100\//, "");
+      const shortName = this.toShortName(name);
       const manifest = await this.registry.getLocalManifest(
-        this.assetsDir,
+        this.ensureAssetsDir(),
         shortName,
       );
       if (!manifest) {
@@ -114,9 +126,9 @@ export class PackageManager {
     for (const pkgRef of this.config!.packages) {
       const lockEntry = this.lockfile!.packages[pkgRef.name];
       if (!lockEntry) continue;
-      const shortName = pkgRef.name.replace(/^@coder-2100\//, "");
+      const shortName = this.toShortName(pkgRef.name);
       const manifest = this.registry.parseManifest(
-        join(this.assetsDir, shortName, "manifest.yaml"),
+        join(this.ensureAssetsDir(), shortName, "manifest.yaml"),
       );
       if (manifest) {
         result.push({
@@ -146,17 +158,38 @@ export class PackageManager {
     return findConfigFile(this.projectDir) !== null;
   }
 
-  /** 从磁盘加载已有的配置和锁文件 */
+  /** 从磁盘加载已有的配置和锁文件，若构造时未指定 assetsDir/scope 则从配置中读取 */
   loadExisting(): void {
     const configPath = findConfigFile(this.projectDir);
     if (!configPath) throw new Error("项目未初始化，请先运行 ai-context init");
     this.config = loadConfig(configPath);
+    // 构造时未指定 assetsDir 时，使用配置中保存的值
+    if (!this.assetsDir && this.config.assetsDir) {
+      this.assetsDir = this.config.assetsDir;
+    }
+    // 构造时未指定 scope 或使用默认值时，使用配置中保存的值
+    if (this.config.scope) {
+      this.scope = this.config.scope;
+      this.registry = new RegistryClient({
+        scope: this.scope,
+        registry: "https://registry.npmjs.org",
+      });
+    }
     const lockPath = join(dirname(configPath), "lock.yaml");
     if (lockfileExists(lockPath)) {
       this.lockfile = loadLockfile(lockPath);
     } else {
       this.lockfile = createEmptyLockfile(this.cliVersion);
     }
+  }
+
+  /** 将带 scope 的包名转换为目录名（如 @coder-2100/react-rules → react-rules） */
+  private toShortName(fullName: string): string {
+    const prefix = `${this.scope}/`;
+    if (fullName.startsWith(prefix)) {
+      return fullName.slice(prefix.length);
+    }
+    return fullName;
   }
 
   /** 递归安装包及其非可选依赖 */
@@ -169,9 +202,9 @@ export class PackageManager {
         !dep.optional &&
         !this.config!.packages.some((p) => p.name === dep.name)
       ) {
-        const depShort = dep.name.replace(/^@coder-2100\//, "");
+        const depShort = this.toShortName(dep.name);
         const depManifest = await this.registry.getLocalManifest(
-          this.assetsDir,
+          this.ensureAssetsDir(),
           depShort,
         );
         if (depManifest) {
@@ -184,7 +217,7 @@ export class PackageManager {
     this.lockfile = addPackageToLockfile(this.lockfile!, {
       name,
       version: manifest.version,
-      resolved: `file:${relative(this.projectDir, join(this.assetsDir, name.replace(/^@coder-2100\//, "")))}`,
+      resolved: `file:${relative(this.projectDir, join(this.ensureAssetsDir(), this.toShortName(name)))}`,
       integrity: `local-${manifest.version}`,
     });
     this.persist();
@@ -203,4 +236,24 @@ export class PackageManager {
       throw new Error("项目未初始化，请先运行 ai-context init");
     }
   }
+
+  /** 确保 assetsDir 已设置，未设置则抛出错误 */
+  private ensureAssetsDir(): string {
+    if (!this.assetsDir) {
+      throw new Error(
+        "未指定资产包目录。请通过 --assets-dir 指定路径，或先运行 ai-context init --assets-dir <path>。",
+      );
+    }
+    return this.assetsDir;
+  }
+}
+
+/** 从 CLI 包的 package.json 中读取版本号 */
+function getCliVersion(): string {
+  const pkgPath = join(import.meta.dirname, "..", "..", "package.json");
+  if (existsSync(pkgPath)) {
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+    return pkg.version || "0.0.0";
+  }
+  return "0.0.0";
 }

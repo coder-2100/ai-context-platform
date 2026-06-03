@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import chalk from "chalk";
 import { PackageManager } from "../core/package-manager";
-import { RegistryClient } from "../core/registry-client";
+import { loadConfig } from "../core/config";
 import { writeIndexFile } from "../engine/index-builder";
 
 /** init 命令的选项 */
@@ -10,6 +10,8 @@ export interface InitOptions {
   projectDir: string;
   projectName: string;
   assetsDir?: string;
+  /** 资产包的 npm scope，默认 @coder-2100 */
+  scope?: string;
 }
 
 /** 初始化项目：创建 .ai/ 目录结构、config.yaml 和 CLAUDE.md 索引文件 */
@@ -19,42 +21,58 @@ export async function initCommand(options: InitOptions): Promise<void> {
     throw new Error("项目已初始化。如需重新初始化，请先删除 .ai/ 目录。");
   }
 
-  const assetsDir = options.assetsDir || findAssetsDir();
-  const registry = new RegistryClient({
-    scope: "@coder-2100",
-    registry: "https://registry.npmjs.org",
-  });
   const pm = new PackageManager({
     projectDir: options.projectDir,
-    assetsDir,
-    registry,
-    cliVersion: "0.1.0",
+    scope: options.scope,
   });
 
-  await pm.init(options.projectName);
+  await pm.init(options.projectName, options.assetsDir);
 
   // 创建 CLAUDE.md 标记区域
   const claudeMdPath = join(options.projectDir, "CLAUDE.md");
   writeIndexFile(
     claudeMdPath,
-    "No packages installed yet. Run `ai-context add` or `ai-context browse` to get started.",
+    "No packages installed yet. Run `ai-context add` to get started.",
   );
 
   console.log(chalk.green("✓ 项目已初始化"));
   console.log(`  创建 ${chalk.cyan(".ai/")} 目录结构`);
   console.log(`  创建 ${chalk.cyan("CLAUDE.md")} 索引文件`);
+  if (options.assetsDir) {
+    console.log(`  资产目录设置为 ${chalk.cyan(options.assetsDir)}`);
+  }
   console.log(`\n运行 ${chalk.yellow("ai-context add")} 安装知识资产包`);
 }
 
-/** 从 CLI 包位置向上查找 monorepo 中的 assets 目录 */
-function findAssetsDir(): string {
-  // MVP 阶段：使用 monorepo 内的 assets 目录
-  // 从 CLI 包向上查找 assets 目录
-  const cliDir = import.meta.dirname;
-  const monorepoRoot = join(cliDir, "..", "..", "..");
-  const assetsDir = join(monorepoRoot, "packages", "assets");
-  if (existsSync(assetsDir)) return assetsDir;
-  throw new Error("未找到资产包目录。请使用 --assets-dir 指定路径。");
-}
+/** 解析资产目录路径，优先级：CLI 参数 > config.yaml 配置 > 抛错提示 */
+export function resolveAssetsDir(
+  projectDir: string,
+  cliAssetsDir?: string,
+): string {
+  // 1. CLI 参数最高优先级
+  if (cliAssetsDir) {
+    if (!existsSync(cliAssetsDir)) {
+      throw new Error(`指定的资产目录不存在: ${cliAssetsDir}`);
+    }
+    return cliAssetsDir;
+  }
 
-export { findAssetsDir };
+  // 2. 从 .ai/config.yaml 读取
+  const configPath = join(projectDir, ".ai", "config.yaml");
+  if (existsSync(configPath)) {
+    const config = loadConfig(configPath);
+    if (config.assetsDir) {
+      if (!existsSync(config.assetsDir)) {
+        throw new Error(
+          `配置中的资产目录不存在: ${config.assetsDir}，请重新指定 --assets-dir`,
+        );
+      }
+      return config.assetsDir;
+    }
+  }
+
+  // 3. 无法解析，提示用户
+  throw new Error(
+    "未指定资产包目录。请通过 --assets-dir 指定路径，或先运行 ai-context init --assets-dir <path> 将路径写入配置。",
+  );
+}

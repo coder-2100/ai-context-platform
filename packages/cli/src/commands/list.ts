@@ -1,12 +1,10 @@
 import chalk from "chalk";
 import { PackageManager } from "../core/package-manager";
 import type { InstalledPackage } from "../core/package-manager";
-import { RegistryClient } from "../core/registry-client";
 
 /** list 命令的选项 */
 export interface ListOptions {
   projectDir: string;
-  assetsDir: string;
   verbose?: boolean;
 }
 
@@ -14,15 +12,8 @@ export interface ListOptions {
 export async function listCommand(
   options: ListOptions,
 ): Promise<InstalledPackage[]> {
-  const registry = new RegistryClient({
-    scope: "@coder-2100",
-    registry: "https://registry.npmjs.org",
-  });
   const pm = new PackageManager({
     projectDir: options.projectDir,
-    assetsDir: options.assetsDir,
-    registry,
-    cliVersion: "0.1.0",
   });
 
   pm.loadExisting();
