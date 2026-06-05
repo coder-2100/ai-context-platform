@@ -92,4 +92,34 @@ describe("addCommand", () => {
     const matches = config.match(/core-engineering/g);
     expect(matches).toHaveLength(1);
   });
+
+  it("无 assetsDir 时从 npm 安装包", async () => {
+    await initCommand({
+      projectDir: TEST_DIR,
+      projectName: "test-npm-project",
+    });
+    await addCommand({
+      projectDir: TEST_DIR,
+      packageNames: ["@coder-2100/core-engineering"],
+      // 不指定 assetsDir，从 npm 安装
+    });
+    const config = readFileSync(join(TEST_DIR, ".ai", "config.yaml"), "utf-8");
+    expect(config).toContain("core-engineering");
+
+    const lockfile = readFileSync(join(TEST_DIR, ".ai", "lock.yaml"), "utf-8");
+    expect(lockfile).toContain("registry.npmjs.org");
+  });
+
+  it("指定版本范围从 npm 安装包", async () => {
+    await initCommand({
+      projectDir: TEST_DIR,
+      projectName: "test-npm-version",
+    });
+    await addCommand({
+      projectDir: TEST_DIR,
+      packageNames: ["@coder-2100/core-engineering@^1.0.0"],
+    });
+    const config = readFileSync(join(TEST_DIR, ".ai", "config.yaml"), "utf-8");
+    expect(config).toContain("core-engineering");
+  });
 });
