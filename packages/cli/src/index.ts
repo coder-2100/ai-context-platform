@@ -34,9 +34,15 @@ program
   .command("add <packages...>")
   .description("添加知识资产包")
   .option("--assets-dir <path>", "资产包目录路径")
+  .option("--registry <url>", "npm registry 地址", "https://registry.npmjs.org")
   .action(async (packageNames: string[], opts) => {
     const assetsDir = resolveAssetsDir(process.cwd(), opts.assetsDir);
-    await addCommand({ projectDir: process.cwd(), packageNames, assetsDir });
+    await addCommand({
+      projectDir: process.cwd(),
+      packageNames,
+      assetsDir,
+      registry: opts.registry,
+    });
   });
 
 program
