@@ -31,9 +31,13 @@ catalog:
   ora: "8.2.0"
   js-tiktoken: "1.0.19"
   "gray-matter": "4.0.3"
+  semver: "7.7.2"
+  tar: "7.4.3"
 
   # 类型定义
   "@types/node": "25.9.1"
+  "@types/semver": "7.7.0"
+  "@types/tar": "6.1.13"
 
   # 版本发布
   "@changesets/cli": "2.31.0"
