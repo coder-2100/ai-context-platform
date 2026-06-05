@@ -40,12 +40,15 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
 
     // 提取所有内容
     const allContents = [];
+    const lockfile = pm.getLockfile();
     for (const pkg of installedPackages) {
+      const lockEntry = lockfile.packages[pkg.name];
       const contents = await extractContent(
         options.assetsDir,
         pkg.name,
         config.scope,
         join(options.projectDir, ".ai", "cache"),
+        lockEntry?.version,
       );
       allContents.push(...contents);
     }

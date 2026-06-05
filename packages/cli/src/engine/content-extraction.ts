@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Priority } from "@coder-2100/schema";
 import matter from "gray-matter";
@@ -54,6 +54,8 @@ export async function extractContent(
   packageName: string,
   scope = "@coder-2100",
   cacheDir?: string,
+  /** 包的精确版本号，用于从缓存目录定位，避免字典序猜测 */
+  version?: string,
 ): Promise<ExtractedContent[]> {
   const registry = new RegistryClient({ scope, registry: "" });
   const shortName = toShortName(packageName, scope);
@@ -71,14 +73,12 @@ export async function extractContent(
 
   // 如果本地没有，尝试从缓存读取
   if (!manifest && cacheDir) {
-    const cachedPkgDir = join(cacheDir, "packages", shortName);
-    if (existsSync(cachedPkgDir)) {
-      const versions = readdirSync(cachedPkgDir, { withFileTypes: true })
-        .filter((d) => d.isDirectory())
-        .sort()
-        .reverse();
-      if (versions.length > 0) {
-        pkgDir = join(cachedPkgDir, versions[0].name);
+    // 优先使用精确版本号定位缓存
+    const targetVersion = version;
+    if (targetVersion) {
+      const versionDir = join(cacheDir, "packages", shortName, targetVersion);
+      if (existsSync(versionDir)) {
+        pkgDir = versionDir;
         manifest = registry.parseManifest(join(pkgDir, "manifest.yaml"));
       }
     }
