@@ -6,6 +6,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
+import * as tar from "tar";
 import type { Manifest } from "@coder-2100/schema";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 
@@ -60,6 +61,51 @@ export class CacheManager {
       rmSync(this.cacheDir, { recursive: true, force: true });
     }
     this.ensureCacheDir();
+  }
+
+  /** 获取 npm 包缓存目录路径，格式为 packages/<shortName>/<version>/ */
+  getPackageCachePath(packageName: string, version: string): string {
+    return join(this.cacheDir, "packages", packageName, version);
+  }
+
+  /** 检查 npm 包缓存是否存在 */
+  hasPackageCache(packageName: string, version: string): boolean {
+    return existsSync(this.getPackageCachePath(packageName, version));
+  }
+
+  /** 解压 npm tarball 到缓存目录，版本变更时清除旧版本缓存 */
+  async extractPackageTarball(
+    packageName: string,
+    version: string,
+    tarballBuffer: Buffer,
+  ): Promise<string> {
+    const packageDir = join(this.cacheDir, "packages", packageName);
+
+    // 清除同名包的旧版本缓存（版本变更时覆盖）
+    if (existsSync(packageDir)) {
+      rmSync(packageDir, { recursive: true, force: true });
+    }
+
+    const targetDir = this.getPackageCachePath(packageName, version);
+    mkdirSync(targetDir, { recursive: true });
+
+    // 将 Buffer 写入临时文件后用 tar 解压
+    const tmpTarPath = join(this.cacheDir, `.tmp-${packageName}-${version}.tgz`);
+    writeFileSync(tmpTarPath, tarballBuffer);
+
+    try {
+      await tar.x({
+        file: tmpTarPath,
+        cwd: targetDir,
+        strip: 1, // npm tarball 内有一层 package/ 目录，需要剥掉
+      });
+    } finally {
+      if (existsSync(tmpTarPath)) {
+        rmSync(tmpTarPath, { force: true });
+      }
+    }
+
+    return targetDir;
   }
 
   private getFilePath(key: string): string {

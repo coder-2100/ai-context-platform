@@ -1,5 +1,6 @@
-import { existsSync, mkdirSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import * as tar from "tar";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { CacheManager } from "../../src/core/cache";
 
@@ -66,5 +67,118 @@ describe("CacheManager", () => {
     cache.set("test", "data");
     cache.clear();
     expect(cache.get("test")).toBeNull();
+  });
+});
+
+describe("CacheManager - npm 包缓存", () => {
+  /** 创建模拟 npm tarball（内含 package/ 前缀目录，符合 npm 格式） */
+  async function createNpmTarball(
+    stagingDir: string,
+    packageContent: Record<string, string>,
+  ): Promise<Buffer> {
+    // 在 staging 目录下创建 package 子目录及文件（模拟 npm tarball 结构）
+    const packageDir = join(stagingDir, "package");
+    mkdirSync(packageDir, { recursive: true });
+    for (const [relativePath, content] of Object.entries(packageContent)) {
+      const filePath = join(packageDir, relativePath);
+      const fileDir = join(filePath, "..");
+      if (!existsSync(fileDir)) {
+        mkdirSync(fileDir, { recursive: true });
+      }
+      writeFileSync(filePath, content, "utf-8");
+    }
+
+    // 打包为 .tgz，内含 package/ 前缀
+    const tarPath = join(stagingDir, "package.tgz");
+    await tar.c(
+      {
+        gzip: true,
+        file: tarPath,
+        cwd: stagingDir,
+      },
+      ["package"],
+    );
+
+    return readFileSync(tarPath);
+  }
+
+  it("getPackageCachePath 返回正确的路径", () => {
+    const cache = new CacheManager(join(TEST_DIR, "cache"));
+    const path = cache.getPackageCachePath("core-engineering", "1.0.0");
+    expect(path).toBe(join(TEST_DIR, "cache", "packages", "core-engineering", "1.0.0"));
+  });
+
+  it("hasPackageCache 检查缓存是否存在", () => {
+    const cache = new CacheManager(join(TEST_DIR, "cache"));
+    cache.ensureCacheDir();
+
+    // 不存在时返回 false
+    expect(cache.hasPackageCache("core-engineering", "1.0.0")).toBe(false);
+
+    // 创建缓存目录后返回 true
+    const pkgDir = cache.getPackageCachePath("core-engineering", "1.0.0");
+    mkdirSync(pkgDir, { recursive: true });
+    expect(cache.hasPackageCache("core-engineering", "1.0.0")).toBe(true);
+  });
+
+  it("解压 tarball 到缓存目录", async () => {
+    const cache = new CacheManager(join(TEST_DIR, "cache"));
+    cache.ensureCacheDir();
+
+    const stagingDir = join(TEST_DIR, "staging");
+    mkdirSync(stagingDir, { recursive: true });
+
+    const tarballBuffer = await createNpmTarball(stagingDir, {
+      "manifest.yaml": "schemaVersion: '1'\nname: core-engineering\nversion: 1.0.0\n",
+      "rules/test.md": "# Test Rule\n",
+    });
+
+    const targetDir = await cache.extractPackageTarball(
+      "core-engineering",
+      "1.0.0",
+      tarballBuffer,
+    );
+
+    // 验证返回的路径正确
+    expect(targetDir).toBe(cache.getPackageCachePath("core-engineering", "1.0.0"));
+
+    // 验证解压后文件存在（strip: 1 剥掉 package/ 前缀）
+    expect(existsSync(join(targetDir, "manifest.yaml"))).toBe(true);
+    expect(existsSync(join(targetDir, "rules", "test.md"))).toBe(true);
+
+    // 验证文件内容
+    const manifestContent = readFileSync(join(targetDir, "manifest.yaml"), "utf-8");
+    expect(manifestContent).toContain("core-engineering");
+  });
+
+  it("版本变更时清除旧版本缓存", async () => {
+    const cache = new CacheManager(join(TEST_DIR, "cache"));
+    cache.ensureCacheDir();
+
+    const stagingV1 = join(TEST_DIR, "staging-v1");
+    mkdirSync(stagingV1, { recursive: true });
+    const tarballV1 = await createNpmTarball(stagingV1, {
+      "manifest.yaml": "schemaVersion: '1'\nname: core-engineering\nversion: 1.0.0\n",
+    });
+
+    const stagingV2 = join(TEST_DIR, "staging-v2");
+    mkdirSync(stagingV2, { recursive: true });
+    const tarballV2 = await createNpmTarball(stagingV2, {
+      "manifest.yaml": "schemaVersion: '1'\nname: core-engineering\nversion: 2.0.0\n",
+    });
+
+    // 安装 v1
+    await cache.extractPackageTarball("core-engineering", "1.0.0", tarballV1);
+    expect(cache.hasPackageCache("core-engineering", "1.0.0")).toBe(true);
+
+    // 安装 v2，应清除 v1 缓存
+    await cache.extractPackageTarball("core-engineering", "2.0.0", tarballV2);
+    expect(cache.hasPackageCache("core-engineering", "1.0.0")).toBe(false);
+    expect(cache.hasPackageCache("core-engineering", "2.0.0")).toBe(true);
+
+    // 验证 v2 的 manifest 内容
+    const v2Dir = cache.getPackageCachePath("core-engineering", "2.0.0");
+    const manifestContent = readFileSync(join(v2Dir, "manifest.yaml"), "utf-8");
+    expect(manifestContent).toContain("2.0.0");
   });
 });
