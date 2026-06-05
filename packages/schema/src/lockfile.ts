@@ -3,7 +3,7 @@ import { z } from "zod";
 /** 锁文件中单个包的记录，包含版本、来源和完整性校验 */
 const LockPackageSchema = z.object({
   version: z.string().min(1),
-  resolved: z.string().url(),
+  resolved: z.string().min(1),
   integrity: z.string().min(1),
 });
 
