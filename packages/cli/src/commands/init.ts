@@ -44,11 +44,11 @@ export async function initCommand(options: InitOptions): Promise<void> {
   console.log(`\n运行 ${chalk.yellow("ai-context add")} 安装知识资产包`);
 }
 
-/** 解析资产目录路径，优先级：CLI 参数 > config.yaml 配置 > 抛错提示 */
+/** 解析资产目录路径，优先级：CLI 参数 > config.yaml 配置 > 返回 undefined（将使用 npm） */
 export function resolveAssetsDir(
   projectDir: string,
   cliAssetsDir?: string,
-): string {
+): string | undefined {
   // 1. CLI 参数最高优先级
   if (cliAssetsDir) {
     if (!existsSync(cliAssetsDir)) {
@@ -71,8 +71,6 @@ export function resolveAssetsDir(
     }
   }
 
-  // 3. 无法解析，提示用户
-  throw new Error(
-    "未指定资产包目录。请通过 --assets-dir 指定路径，或先运行 ai-context init --assets-dir <path> 将路径写入配置。",
-  );
+  // 3. 无法解析，返回 undefined（将使用 npm 安装）
+  return undefined;
 }

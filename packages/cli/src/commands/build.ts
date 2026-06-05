@@ -14,7 +14,7 @@ export interface BuildOptions {
   projectDir: string;
   task: string;
   tool: ToolName;
-  assetsDir: string;
+  assetsDir?: string;
   dryRun?: boolean;
   verbose?: boolean;
 }
@@ -45,6 +45,7 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
         options.assetsDir,
         pkg.name,
         config.scope,
+        join(options.projectDir, ".ai", "cache"),
       );
       allContents.push(...contents);
     }

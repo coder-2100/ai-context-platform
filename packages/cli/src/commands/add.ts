@@ -5,7 +5,9 @@ import { PackageManager } from "../core/package-manager";
 export interface AddOptions {
   projectDir: string;
   packageNames: string[];
-  assetsDir: string;
+  assetsDir?: string;
+  /** npm registry 地址 */
+  registry?: string;
 }
 
 /** 添加知识资产包到项目，更新 config.yaml 和 lock.yaml */
@@ -13,6 +15,7 @@ export async function addCommand(options: AddOptions): Promise<void> {
   const pm = new PackageManager({
     projectDir: options.projectDir,
     assetsDir: options.assetsDir,
+    registry: options.registry,
   });
 
   pm.loadExisting();
