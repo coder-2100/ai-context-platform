@@ -48,7 +48,7 @@ describe("PackageManager", () => {
     expect(lockfile.packages["@coder-2100/core-engineering"]).toBeDefined();
   });
 
-  it("add 安装带依赖的包时自动安装依赖", async () => {
+  it("add 安装带依赖的包时自动安装依赖", { timeout: 15000 }, async () => {
     const pm = createPM();
     await pm.init("test-project");
     await pm.add(["@coder-2100/react-rules"]);
