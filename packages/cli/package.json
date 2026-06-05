@@ -38,11 +38,15 @@
     "gray-matter": "catalog:",
     "js-tiktoken": "catalog:",
     "ora": "catalog:",
+    "semver": "catalog:",
+    "tar": "catalog:",
     "yaml": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/semver": "catalog:",
+    "@types/tar": "catalog:",
     "tsup": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
