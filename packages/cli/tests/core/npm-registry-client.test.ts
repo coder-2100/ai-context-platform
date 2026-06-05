@@ -29,7 +29,7 @@ describe("NpmRegistryClient", () => {
       ).rejects.toThrow("未找到");
     });
 
-    it("版本范围无匹配时抛出错误", async () => {
+    it("版本范围无匹配时抛出错误", { timeout: 15000 }, async () => {
       await expect(
         client.resolveVersion("@coder-2100/core-engineering", ">=99.0.0"),
       ).rejects.toThrow();

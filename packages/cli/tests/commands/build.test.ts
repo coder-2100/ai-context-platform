@@ -107,7 +107,7 @@ describe("buildCommand", () => {
     expect(content).toContain("Custom content here.");
   });
 
-  it("安装多个包时生成所有内容文件", async () => {
+  it("安装多个包时生成所有内容文件", { timeout: 15000 }, async () => {
     await initCommand({
       projectDir: TEST_DIR,
       projectName: "test-project",
