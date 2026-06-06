@@ -1,5 +1,11 @@
 # @coder-2100/schema
 
+## 0.2.0-beta.3
+
+### Minor Changes
+
+- 新增安装远程资源包能力
+
 ## 0.2.0-beta.2
 
 ### Minor Changes
