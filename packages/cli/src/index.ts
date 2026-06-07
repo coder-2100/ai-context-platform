@@ -3,6 +3,7 @@ import { Command } from "commander";
 import type { ToolName } from "./adapters/types";
 import { addCommand } from "./commands/add";
 import { buildCommand } from "./commands/build";
+import { cleanCommand } from "./commands/clean";
 import { initCommand, resolveAssetsDir } from "./commands/init";
 import { listCommand } from "./commands/list";
 import { removeCommand } from "./commands/remove";
@@ -80,6 +81,20 @@ program
       assetsDir,
       dryRun: opts.dryRun,
       verbose: opts.verbose,
+    });
+  });
+
+program
+  .command("clean")
+  .description("清理 CLI 全局缓存（~/.ai-context/cache）")
+  .option("--packages", "只清理 npm 包缓存")
+  .option("--manifests", "只清理清单缓存")
+  .option("--dry-run", "仅打印将删除的内容，不实际删除")
+  .action(async (opts) => {
+    await cleanCommand({
+      packages: opts.packages,
+      manifests: opts.manifests,
+      dryRun: opts.dryRun,
     });
   });
 
