@@ -182,3 +182,89 @@ describe("CacheManager - npm 包缓存", () => {
     expect(manifestContent).toContain("2.0.0");
   });
 });
+
+describe("CacheManager - 分类清理与统计", () => {
+  it("clearPackages 只清空 packages 子目录", () => {
+    const cache = new CacheManager(join(TEST_DIR, "cache"));
+    cache.ensureCacheDir();
+    mkdirSync(cache.getPackageCachePath("foo", "1.0.0"), { recursive: true });
+    writeFileSync(join(cache.getPackageCachePath("foo", "1.0.0"), "a.txt"), "x");
+    cache.setManifest("@scope/foo", "1.0.0", {
+      schemaVersion: "1",
+      name: "foo",
+      version: "1.0.0",
+      type: "rules" as const,
+      layer: "core" as const,
+      description: "test",
+      entry: { rules: [], skills: [], agents: [], domains: [], playbooks: [], templates: [] },
+    });
+
+    cache.clearPackages();
+
+    expect(cache.hasPackageCache("foo", "1.0.0")).toBe(false);
+    expect(cache.getManifest("@scope/foo", "1.0.0")).not.toBeNull();
+  });
+
+  it("clearManifests 只清空 manifests 子目录", () => {
+    const cache = new CacheManager(join(TEST_DIR, "cache"));
+    cache.ensureCacheDir();
+    mkdirSync(cache.getPackageCachePath("foo", "1.0.0"), { recursive: true });
+    cache.setManifest("@scope/foo", "1.0.0", {
+      schemaVersion: "1",
+      name: "foo",
+      version: "1.0.0",
+      type: "rules" as const,
+      layer: "core" as const,
+      description: "test",
+      entry: { rules: [], skills: [], agents: [], domains: [], playbooks: [], templates: [] },
+    });
+
+    cache.clearManifests();
+
+    expect(cache.getManifest("@scope/foo", "1.0.0")).toBeNull();
+    expect(cache.hasPackageCache("foo", "1.0.0")).toBe(true);
+  });
+
+  it("statPackages 返回文件数和总大小", () => {
+    const cache = new CacheManager(join(TEST_DIR, "cache"));
+    cache.ensureCacheDir();
+    const dir = cache.getPackageCachePath("foo", "1.0.0");
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, "a.txt"), "hello");
+    writeFileSync(join(dir, "b.txt"), "world!");
+
+    const stat = cache.statPackages();
+    expect(stat.fileCount).toBe(2);
+    expect(stat.totalBytes).toBe(11);
+  });
+
+  it("statManifests 返回文件数和总大小", () => {
+    const cache = new CacheManager(join(TEST_DIR, "cache"));
+    cache.ensureCacheDir();
+    cache.setManifest("@scope/foo", "1.0.0", {
+      schemaVersion: "1",
+      name: "foo",
+      version: "1.0.0",
+      type: "rules" as const,
+      layer: "core" as const,
+      description: "test",
+      entry: { rules: [], skills: [], agents: [], domains: [], playbooks: [], templates: [] },
+    });
+
+    const stat = cache.statManifests();
+    expect(stat.fileCount).toBe(1);
+    expect(stat.totalBytes).toBeGreaterThan(0);
+  });
+
+  it("stat* 在目录不存在时返回零值", () => {
+    const cache = new CacheManager(join(TEST_DIR, "cache-empty"));
+    expect(cache.statPackages()).toEqual({ fileCount: 0, totalBytes: 0 });
+    expect(cache.statManifests()).toEqual({ fileCount: 0, totalBytes: 0 });
+  });
+
+  it("clear* 在目录不存在时不抛错", () => {
+    const cache = new CacheManager(join(TEST_DIR, "cache-empty"));
+    expect(() => cache.clearPackages()).not.toThrow();
+    expect(() => cache.clearManifests()).not.toThrow();
+  });
+});

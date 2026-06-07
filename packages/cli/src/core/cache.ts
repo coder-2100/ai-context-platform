@@ -1,8 +1,10 @@
 import {
   existsSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
@@ -63,6 +65,32 @@ export class CacheManager {
     this.ensureCacheDir();
   }
 
+  /** 清空 npm 包缓存（packages/ 子目录），保留清单缓存 */
+  clearPackages(): void {
+    const dir = join(this.cacheDir, "packages");
+    if (existsSync(dir)) {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+
+  /** 清空清单缓存（manifests/ 子目录），保留 npm 包缓存 */
+  clearManifests(): void {
+    const dir = join(this.cacheDir, "manifests");
+    if (existsSync(dir)) {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+
+  /** 统计 npm 包缓存的文件数量与总大小（字节） */
+  statPackages(): { fileCount: number; totalBytes: number } {
+    return statDir(join(this.cacheDir, "packages"));
+  }
+
+  /** 统计清单缓存的文件数量与总大小（字节） */
+  statManifests(): { fileCount: number; totalBytes: number } {
+    return statDir(join(this.cacheDir, "manifests"));
+  }
+
   /** 获取 npm 包缓存目录路径，格式为 packages/<shortName>/<version>/ */
   getPackageCachePath(packageName: string, version: string): string {
     return join(this.cacheDir, "packages", packageName, version);
@@ -111,4 +139,28 @@ export class CacheManager {
   private getFilePath(key: string): string {
     return join(this.cacheDir, key);
   }
+}
+
+/** 递归统计目录下所有文件的数量与字节总数，目录不存在时返回零值 */
+function statDir(dir: string): { fileCount: number; totalBytes: number } {
+  if (!existsSync(dir)) {
+    return { fileCount: 0, totalBytes: 0 };
+  }
+  let fileCount = 0;
+  let totalBytes = 0;
+  const stack: string[] = [dir];
+  while (stack.length > 0) {
+    const current = stack.pop() as string;
+    const entries = readdirSync(current, { withFileTypes: true });
+    for (const entry of entries) {
+      const entryPath = join(current, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(entryPath);
+      } else if (entry.isFile()) {
+        fileCount += 1;
+        totalBytes += statSync(entryPath).size;
+      }
+    }
+  }
+  return { fileCount, totalBytes };
 }
