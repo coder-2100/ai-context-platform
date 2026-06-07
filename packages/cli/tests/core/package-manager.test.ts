@@ -103,16 +103,24 @@ describe("PackageManager", () => {
     expect(() => pm.getConfig()).toThrow();
   });
 
-  it("cacheDir 选项覆盖默认全局缓存路径", { timeout: 15000 }, async () => {
+  it("init 不再创建 .ai/cache 目录", async () => {
+    const pm = createPM();
+    await pm.init("test-project");
+    expect(existsSync(join(TEST_DIR, ".ai", "cache"))).toBe(false);
+  });
+
+  it("cacheDir 选项使 npm 安装写入自定义缓存目录", { timeout: 30000 }, async () => {
     const customCache = join(TEST_DIR, "custom-cache");
     const pm = new PackageManager({
       projectDir: TEST_DIR,
-      assetsDir: ASSETS_DIR,
+      // 不传 assetsDir，强制走 npm
       cacheDir: customCache,
     });
     await pm.init("test-project");
     await pm.add(["@coder-2100/core-engineering"]);
-    // 项目本地不应再写入 .ai/cache
+    // npm 安装会触发 CacheManager.extractPackageTarball，向 customCache/packages/ 写入
+    expect(existsSync(join(customCache, "packages"))).toBe(true);
+    // 项目本地仍不应有 .ai/cache
     expect(existsSync(join(TEST_DIR, ".ai", "cache"))).toBe(false);
   });
 });
