@@ -78,7 +78,7 @@ export class PackageManager {
       registry: options.registry || "https://registry.npmjs.org",
     });
     this.cliVersion = getCliVersion();
-    this.cacheDir = options.cacheDir || GLOBAL_CACHE_DIR;
+    this.cacheDir = options.cacheDir ?? GLOBAL_CACHE_DIR;
   }
 
   /** 初始化项目：创建 .ai/ 目录结构、默认配置和锁文件，可选保存 assetsDir 和 scope 到配置 */
