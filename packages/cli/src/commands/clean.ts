@@ -35,25 +35,19 @@ export async function cleanCommand(options: CleanOptions = {}): Promise<void> {
 
   const cache = new CacheManager(cacheDir);
 
-  // 当未显式指定 --packages 或 --manifests 时，默认两者都清理
-  const onlyPackages = options.packages === true && options.manifests !== true;
-  const onlyManifests = options.manifests === true && options.packages !== true;
-  const clearAll = !onlyPackages && !onlyManifests;
-
-  const packagesStat = cache.statPackages();
-  const manifestsStat = cache.statManifests();
+  // 未指定任何范围 → 全清；显式指定一个 → 只清那个；两个都指定 → 等价于全清
+  const noneSpecified = !options.packages && !options.manifests;
+  const cleanPackages = noneSpecified || options.packages === true;
+  const cleanManifests = noneSpecified || options.manifests === true;
 
   console.log(chalk.cyan(`缓存目录: ${cacheDir}`));
-
-  if (clearAll || onlyPackages) {
-    console.log(
-      `  packages: ${packagesStat.fileCount} 个文件, ${formatBytes(packagesStat.totalBytes)}`,
-    );
+  if (cleanPackages) {
+    const stat = cache.statPackages();
+    console.log(`  packages: ${stat.fileCount} 个文件, ${formatBytes(stat.totalBytes)}`);
   }
-  if (clearAll || onlyManifests) {
-    console.log(
-      `  manifests: ${manifestsStat.fileCount} 个文件, ${formatBytes(manifestsStat.totalBytes)}`,
-    );
+  if (cleanManifests) {
+    const stat = cache.statManifests();
+    console.log(`  manifests: ${stat.fileCount} 个文件, ${formatBytes(stat.totalBytes)}`);
   }
 
   if (options.dryRun) {
@@ -61,14 +55,8 @@ export async function cleanCommand(options: CleanOptions = {}): Promise<void> {
     return;
   }
 
-  if (clearAll) {
-    cache.clearPackages();
-    cache.clearManifests();
-  } else if (onlyPackages) {
-    cache.clearPackages();
-  } else if (onlyManifests) {
-    cache.clearManifests();
-  }
+  if (cleanPackages) cache.clearPackages();
+  if (cleanManifests) cache.clearManifests();
 
   console.log(chalk.green("\n✓ 缓存清理完成"));
 }
