@@ -35,7 +35,7 @@ describe("initCommand", () => {
     expect(existsSync(join(TEST_DIR, ".ai", "runtime", "rules"))).toBe(true);
     expect(existsSync(join(TEST_DIR, ".ai", "runtime", "skills"))).toBe(true);
     expect(existsSync(join(TEST_DIR, ".ai", "runtime", "agents"))).toBe(true);
-    expect(existsSync(join(TEST_DIR, ".ai", "cache"))).toBe(true);
+    expect(existsSync(join(TEST_DIR, ".ai", "cache"))).toBe(false);
     expect(existsSync(join(TEST_DIR, ".ai", "logs"))).toBe(true);
   });
 
