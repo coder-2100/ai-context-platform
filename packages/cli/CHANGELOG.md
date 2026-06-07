@@ -1,5 +1,12 @@
 # @coder-2100/cli
 
+## 0.2.0-beta.4
+
+### Minor Changes
+
+- 将包缓存从项目级 `.ai/cache/` 迁移到全局 `~/.ai-context/cache/`，新增 `ai-context clean` 命令用于清理（支持 `--packages` / `--manifests` / `--dry-run`）。`init` 不再创建 `.ai/cache` 目录；已有项目的旧目录不会被自动迁移，可手动删除。
+- 缓存机制重构，缓存目录迁移至全局复用
+
 ## 0.2.0-beta.3
 
 ### Minor Changes
