@@ -9,6 +9,6 @@ describe("paths", () => {
   });
 
   it("GLOBAL_CACHE_DIR 指向 CLI_HOME 下的 cache", () => {
-    expect(GLOBAL_CACHE_DIR).toBe(path.join(os.homedir(), ".ai-context", "cache"));
+    expect(GLOBAL_CACHE_DIR).toBe(path.join(CLI_HOME, "cache"));
   });
 });
