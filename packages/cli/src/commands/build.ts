@@ -5,6 +5,7 @@ import chalk from "chalk";
 import ora from "ora";
 import { ClaudeCodeAdapter } from "../adapters/claude";
 import { type ToolName, getCapabilities } from "../adapters/types";
+import { GLOBAL_CACHE_DIR } from "../core/paths";
 import { PackageManager } from "../core/package-manager";
 import { extractContent } from "../engine/content-extraction";
 import { writeIndexFile } from "../engine/index-builder";
@@ -15,6 +16,8 @@ export interface BuildOptions {
   task: string;
   tool: ToolName;
   assetsDir?: string;
+  /** npm 包缓存目录，默认指向全局 ~/.ai-context/cache，测试可注入 */
+  cacheDir?: string;
   dryRun?: boolean;
   verbose?: boolean;
 }
@@ -40,6 +43,7 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
 
     // 提取所有内容
     const allContents = [];
+    const cacheDir = options.cacheDir ?? GLOBAL_CACHE_DIR;
     const lockfile = pm.getLockfile();
     for (const pkg of installedPackages) {
       const lockEntry = lockfile.packages[pkg.name];
@@ -47,7 +51,7 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
         options.assetsDir,
         pkg.name,
         config.scope,
-        join(options.projectDir, ".ai", "cache"),
+        cacheDir,
         lockEntry?.version,
       );
       allContents.push(...contents);
