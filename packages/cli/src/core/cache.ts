@@ -150,7 +150,7 @@ function statDir(dir: string): { fileCount: number; totalBytes: number } {
   let totalBytes = 0;
   const stack: string[] = [dir];
   while (stack.length > 0) {
-    const current = stack.pop() as string;
+    const current = stack.pop()!;
     const entries = readdirSync(current, { withFileTypes: true });
     for (const entry of entries) {
       const entryPath = join(current, entry.name);

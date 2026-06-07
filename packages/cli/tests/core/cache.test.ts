@@ -238,6 +238,20 @@ describe("CacheManager - 分类清理与统计", () => {
     expect(stat.totalBytes).toBe(11);
   });
 
+  it("statPackages 递归统计嵌套子目录", () => {
+    const cache = new CacheManager(join(TEST_DIR, "cache"));
+    cache.ensureCacheDir();
+    const dir = cache.getPackageCachePath("foo", "1.0.0");
+    mkdirSync(join(dir, "sub", "deep"), { recursive: true });
+    writeFileSync(join(dir, "a.txt"), "x");
+    writeFileSync(join(dir, "sub", "b.txt"), "yy");
+    writeFileSync(join(dir, "sub", "deep", "c.txt"), "zzz");
+
+    const stat = cache.statPackages();
+    expect(stat.fileCount).toBe(3);
+    expect(stat.totalBytes).toBe(6);
+  });
+
   it("statManifests 返回文件数和总大小", () => {
     const cache = new CacheManager(join(TEST_DIR, "cache"));
     cache.ensureCacheDir();
