@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { addCommand } from "../../src/commands/add";
@@ -169,5 +169,51 @@ describe("buildCommand", () => {
     expect(existsSync(join(runtimeRules, "core-coding-standards.md"))).toBe(
       false,
     );
+  });
+
+  // 回归测试：未传 assetsDir 时，build 必须从 cacheDir（全局缓存）读取内容
+  // 并写入 .ai/runtime/，而不是因找不到缓存而生成空文件
+  it("从 cacheDir 读取已缓存的包并生成 runtime 内容", async () => {
+    await initCommand({
+      projectDir: TEST_DIR,
+      projectName: "test-project",
+      assetsDir: ASSETS_DIR,
+    });
+    await addCommand({
+      projectDir: TEST_DIR,
+      packageNames: ["@coder-2100/core-engineering"],
+      assetsDir: ASSETS_DIR,
+    });
+
+    // 模拟全局缓存：将 assets 包复制为 <cacheDir>/packages/<shortName>/<version>/
+    const cacheDir = join(TEST_DIR, "__cache__");
+    const cachedPkgDir = join(
+      cacheDir,
+      "packages",
+      "core-engineering",
+      "1.1.0-beta.1",
+    );
+    mkdirSync(cachedPkgDir, { recursive: true });
+    cpSync(join(ASSETS_DIR, "core-engineering"), cachedPkgDir, {
+      recursive: true,
+    });
+
+    // 关键：不传 assetsDir，强制走 cacheDir 分支
+    await buildCommand({
+      projectDir: TEST_DIR,
+      task: "review",
+      tool: "claude-code",
+      cacheDir,
+    });
+
+    const ruleFile = join(
+      TEST_DIR,
+      ".ai",
+      "runtime",
+      "rules",
+      "core-coding-standards.md",
+    );
+    expect(existsSync(ruleFile)).toBe(true);
+    expect(readFileSync(ruleFile, "utf-8")).toContain("Core Coding Standards");
   });
 });
