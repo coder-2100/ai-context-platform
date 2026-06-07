@@ -116,6 +116,35 @@ pnpm changeset pre exit
 
 当 tag 格式为 `@coder-2100/*@*` 的 tag 被推送到 GitHub 后，CI 自动构建并发布到 GitHub Packages。
 
+## CLI 全局缓存
+
+`@coder-2100/cli` 将 npm 包和清单缓存统一存放在用户目录下的 `~/.ai-context/cache/`，跨项目共享，避免重复下载。
+
+```
+~/.ai-context/cache/
+├── packages/<package-name>/<version>/   # npm tarball 解压内容
+└── manifests/<name>/<version>.yaml      # 清单缓存
+```
+
+清理缓存：
+
+```bash
+ai-context clean              # 清空全部
+ai-context clean --packages   # 只清 npm 包
+ai-context clean --manifests  # 只清清单
+ai-context clean --dry-run    # 预览，不删除
+```
+
+> 0.x 早期版本曾将缓存放在每个项目的 `.ai/cache/` 下。升级后该目录将不再被使用，可手动删除。
+
+## 卸载 CLI
+
+```bash
+ai-context clean              # 先清缓存（推荐）
+npm uninstall -g @coder-2100/cli
+rm -rf ~/.ai-context          # 如有需要，彻底移除全局目录
+```
+
 ## 许可证
 
 [MIT](LICENSE)
