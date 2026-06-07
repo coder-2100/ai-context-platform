@@ -24,8 +24,11 @@ function seedCache(): void {
   });
 }
 
+let logSpy: ReturnType<typeof vi.spyOn>;
+
 beforeEach(() => {
   mkdirSync(TEST_DIR, { recursive: true });
+  logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -39,6 +42,7 @@ describe("cleanCommand", () => {
     await cleanCommand({ cacheDir: CACHE_DIR });
     expect(existsSync(join(CACHE_DIR, "packages"))).toBe(false);
     expect(existsSync(join(CACHE_DIR, "manifests"))).toBe(false);
+    expect(existsSync(CACHE_DIR)).toBe(true);
   });
 
   it("--packages 仅清空 packages", async () => {
@@ -57,19 +61,20 @@ describe("cleanCommand", () => {
 
   it("--dry-run 不删除任何文件，仅打印摘要", async () => {
     seedCache();
-    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     await cleanCommand({ cacheDir: CACHE_DIR, dryRun: true });
     expect(existsSync(join(CACHE_DIR, "packages"))).toBe(true);
     expect(existsSync(join(CACHE_DIR, "manifests"))).toBe(true);
     const printed = logSpy.mock.calls.map((c) => String(c[0] ?? "")).join("\n");
     expect(printed.toLowerCase()).toContain("dry");
+    expect(printed).toContain("packages:");
+    expect(printed).toContain("manifests:");
   });
 
   it("缓存目录不存在时友好提示，不抛错", async () => {
     const missing = join(TEST_DIR, "missing-cache");
-    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     await expect(cleanCommand({ cacheDir: missing })).resolves.toBeUndefined();
-    expect(logSpy).toHaveBeenCalled();
+    const printed = logSpy.mock.calls.map((c) => String(c[0] ?? "")).join("\n");
+    expect(printed).toContain("不存在");
   });
 
   it("同时传 --packages 和 --manifests 等价于全部清理", async () => {
