@@ -102,4 +102,17 @@ describe("PackageManager", () => {
     const pm = createPM();
     expect(() => pm.getConfig()).toThrow();
   });
+
+  it("cacheDir 选项覆盖默认全局缓存路径", { timeout: 15000 }, async () => {
+    const customCache = join(TEST_DIR, "custom-cache");
+    const pm = new PackageManager({
+      projectDir: TEST_DIR,
+      assetsDir: ASSETS_DIR,
+      cacheDir: customCache,
+    });
+    await pm.init("test-project");
+    await pm.add(["@coder-2100/core-engineering"]);
+    // 项目本地不应再写入 .ai/cache
+    expect(existsSync(join(TEST_DIR, ".ai", "cache"))).toBe(false);
+  });
 });

@@ -19,6 +19,7 @@ import { RegistryClient } from "./registry-client";
 import { PackageNameParser } from "./package-name-parser";
 import { NpmRegistryClient } from "./npm-registry-client";
 import { CacheManager } from "./cache";
+import { GLOBAL_CACHE_DIR } from "./paths";
 
 /** PackageManager 构造选项 */
 export interface PackageManagerOptions {
@@ -29,6 +30,8 @@ export interface PackageManagerOptions {
   scope?: string;
   /** npm registry 地址，默认 https://registry.npmjs.org */
   registry?: string;
+  /** 缓存目录路径，默认为全局缓存 `~/.ai-context/cache`，测试时可注入临时目录 */
+  cacheDir?: string;
 }
 
 /** 已安装的包信息，包含名称、版本和完整清单 */
@@ -57,6 +60,8 @@ export class PackageManager {
   private npmRegistry: NpmRegistryClient;
   /** CLI 版本号，从 package.json 中自动读取 */
   private cliVersion: string;
+  /** 缓存目录路径，未传入时使用全局默认值 */
+  private cacheDir: string;
   private config: Config | null = null;
   private lockfile: Lockfile | null = null;
   private _cacheManager: CacheManager | null = null;
@@ -73,6 +78,7 @@ export class PackageManager {
       registry: options.registry || "https://registry.npmjs.org",
     });
     this.cliVersion = getCliVersion();
+    this.cacheDir = options.cacheDir || GLOBAL_CACHE_DIR;
   }
 
   /** 初始化项目：创建 .ai/ 目录结构、默认配置和锁文件，可选保存 assetsDir 和 scope 到配置 */
@@ -84,7 +90,6 @@ export class PackageManager {
     mkdirSync(join(aiDir, "runtime", "agents"), { recursive: true });
     mkdirSync(join(aiDir, "runtime", "domains"), { recursive: true });
     mkdirSync(join(aiDir, "runtime", "playbooks"), { recursive: true });
-    mkdirSync(join(aiDir, "cache"), { recursive: true });
     mkdirSync(join(aiDir, "logs"), { recursive: true });
 
     this.config = createDefaultConfig(projectName);
@@ -309,12 +314,10 @@ export class PackageManager {
     return this.localRegistry.parseManifest(join(cachePath, "manifest.yaml"));
   }
 
-  /** 获取缓存管理器实例 */
+  /** 获取缓存管理器实例，使用构造时指定的缓存目录（默认为全局缓存） */
   private getCacheManager(): CacheManager {
     if (!this._cacheManager) {
-      this._cacheManager = new CacheManager(
-        join(this.projectDir, ".ai", "cache"),
-      );
+      this._cacheManager = new CacheManager(this.cacheDir);
     }
     return this._cacheManager;
   }
