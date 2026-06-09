@@ -50,6 +50,14 @@ interface ResolvedPackageInfo {
   shasum?: string;
 }
 
+/** 移除结果，包含被移除的包名列表和被依赖警告 */
+export interface RemoveResult {
+  /** 被移除的包名（包含级联移除的依赖） */
+  removed: string[];
+  /** 被其他包依赖的警告信息 */
+  warnings: string[];
+}
+
 /** 包管理器：统一管理知识资产包的初始化、安装、移除和查询 */
 export class PackageManager {
   private projectDir: string;
@@ -127,8 +135,8 @@ export class PackageManager {
     return installed;
   }
 
-  /** 从项目中移除包，更新配置和锁文件 */
-  async remove(packageName: string): Promise<void> {
+  /** 从项目中移除包，级联移除孤立的依赖包，返回移除结果 */
+  async remove(packageName: string): Promise<RemoveResult> {
     this.ensureInitialized();
     const pkgIndex = this.config!.packages.findIndex(
       (p) => p.name === packageName,
@@ -136,9 +144,44 @@ export class PackageManager {
     if (pkgIndex === -1) {
       throw new Error(`包 ${packageName} 未安装`);
     }
+
+    const result: RemoveResult = { removed: [], warnings: [] };
+
+    // 构建依赖图
+    const depGraph = this.buildDependencyGraph();
+
+    // 检查要移除的包是否被其他包依赖
+    const dependents = this.getDependents(packageName, depGraph);
+    if (dependents.length > 0) {
+      result.warnings.push(
+        `包 ${packageName} 被 ${dependents.join("、")} 依赖，移除后这些包可能无法正常工作`,
+      );
+    }
+
+    // 获取要移除的包的依赖列表
+    const pkgDeps = depGraph.get(packageName) || new Set();
+
+    // 移除指定包
     this.config!.packages.splice(pkgIndex, 1);
     this.lockfile = removePackageFromLockfile(this.lockfile!, packageName);
+    result.removed.push(packageName);
+
+    // 级联移除孤立的依赖
+    const remainingPackages = new Set(this.config!.packages.map((p) => p.name));
+    const orphans = this.findOrphanedDeps(pkgDeps, remainingPackages, depGraph);
+    for (const orphan of orphans) {
+      const orphanIndex = this.config!.packages.findIndex(
+        (p) => p.name === orphan,
+      );
+      if (orphanIndex !== -1) {
+        this.config!.packages.splice(orphanIndex, 1);
+        this.lockfile = removePackageFromLockfile(this.lockfile!, orphan);
+        result.removed.push(orphan);
+      }
+    }
+
     this.persist();
+    return result;
   }
 
   /** 列出所有已安装的包及其清单信息 */
@@ -219,6 +262,99 @@ export class PackageManager {
       return fullName.slice(prefix.length);
     }
     return fullName;
+  }
+
+  /** 构建依赖图：包名 → 其直接依赖包名集合 */
+  private buildDependencyGraph(): Map<string, Set<string>> {
+    const graph = new Map<string, Set<string>>();
+    for (const pkgRef of this.config!.packages) {
+      const lockEntry = this.lockfile!.packages[pkgRef.name];
+      if (!lockEntry) {
+        graph.set(pkgRef.name, new Set());
+        continue;
+      }
+
+      const shortName = this.toShortName(pkgRef.name);
+      let manifest: Manifest | null = null;
+
+      if (lockEntry.resolved.startsWith("file:") && this.assetsDir) {
+        manifest = this.localRegistry.parseManifest(
+          join(this.assetsDir, shortName, "manifest.yaml"),
+        );
+      } else if (lockEntry.resolved.startsWith("http")) {
+        manifest = this.readCachedManifest(shortName, lockEntry.version);
+      }
+
+      const deps = new Set<string>();
+      if (manifest) {
+        for (const dep of manifest.dependencies) {
+          if (!dep.optional) {
+            deps.add(dep.name);
+          }
+        }
+      }
+      graph.set(pkgRef.name, deps);
+    }
+    return graph;
+  }
+
+  /** 获取依赖指定包的其他包名列表 */
+  private getDependents(
+    packageName: string,
+    depGraph: Map<string, Set<string>>,
+  ): string[] {
+    const dependents: string[] = [];
+    for (const [name, deps] of depGraph) {
+      if (name !== packageName && deps.has(packageName)) {
+        dependents.push(name);
+      }
+    }
+    return dependents;
+  }
+
+  /** 递归查找孤立的依赖包：不再被任何剩余包引用的依赖 */
+  private findOrphanedDeps(
+    deps: Set<string>,
+    remainingPackages: Set<string>,
+    depGraph: Map<string, Set<string>>,
+  ): string[] {
+    const orphans: string[] = [];
+    for (const dep of deps) {
+      // 跳过不在项目中的包（可能是可选依赖未安装）
+      if (!remainingPackages.has(dep)) continue;
+      // 跳过已被标记为孤立的包（避免重复）
+      if (orphans.includes(dep)) continue;
+
+      // 检查 dep 是否仍被剩余包依赖
+      const stillNeeded = this.isDepNeededByRemaining(dep, remainingPackages, depGraph);
+      if (!stillNeeded) {
+        orphans.push(dep);
+        // 递归检查 dep 的依赖是否也变为孤立
+        const transitiveDeps = depGraph.get(dep) || new Set();
+        const transitiveOrphans = this.findOrphanedDeps(
+          transitiveDeps,
+          new Set([...remainingPackages].filter((p) => p !== dep)),
+          depGraph,
+        );
+        orphans.push(...transitiveOrphans);
+      }
+    }
+    return orphans;
+  }
+
+  /** 检查指定包是否仍被剩余包中的任一包依赖 */
+  private isDepNeededByRemaining(
+    dep: string,
+    remainingPackages: Set<string>,
+    depGraph: Map<string, Set<string>>,
+  ): boolean {
+    for (const pkgName of remainingPackages) {
+      const deps = depGraph.get(pkgName);
+      if (deps && deps.has(dep)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** 解析包清单：先查本地 assetsDir，再查 npm */

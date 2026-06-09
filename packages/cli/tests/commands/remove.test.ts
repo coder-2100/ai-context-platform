@@ -39,7 +39,6 @@ describe("removeCommand", () => {
     await removeCommand({
       projectDir: TEST_DIR,
       packageName: "@coder-2100/core-engineering",
-      assetsDir: ASSETS_DIR,
     });
     const config = readFileSync(join(TEST_DIR, ".ai", "config.yaml"), "utf-8");
     expect(config).not.toContain("core-engineering");
@@ -55,7 +54,6 @@ describe("removeCommand", () => {
       removeCommand({
         projectDir: TEST_DIR,
         packageName: "@coder-2100/nonexistent",
-        assetsDir: ASSETS_DIR,
       }),
     ).rejects.toThrow();
   });

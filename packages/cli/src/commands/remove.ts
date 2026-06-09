@@ -9,7 +9,7 @@ export interface RemoveOptions {
   packageName: string;
 }
 
-/** 移除已安装的知识资产包，更新配置和锁文件后自动重新构建运行时上下文 */
+/** 移除已安装的知识资产包，级联移除孤立依赖后自动重新构建运行时上下文 */
 export async function removeCommand(options: RemoveOptions): Promise<void> {
   const pm = new PackageManager({
     projectDir: options.projectDir,
@@ -17,8 +17,18 @@ export async function removeCommand(options: RemoveOptions): Promise<void> {
 
   pm.loadExisting();
   const config = pm.getConfig();
-  await pm.remove(options.packageName);
-  console.log(`${chalk.red(" -")} ${options.packageName}`);
+  const result = await pm.remove(options.packageName);
+
+  // 输出被依赖警告
+  for (const warning of result.warnings) {
+    console.log(chalk.yellow(`⚠ ${warning}`));
+  }
+
+  // 输出移除的包
+  for (const name of result.removed) {
+    console.log(`${chalk.red(" -")} ${name}`);
+  }
+
   console.log(
     `\n已更新 ${chalk.cyan(".ai/config.yaml")} 和 ${chalk.cyan(".ai/lock.yaml")}`,
   );
