@@ -1,5 +1,11 @@
 # @coder-2100/schema
 
+## 0.2.0-beta.4
+
+### Patch Changes
+
+- 修复 removebug；优化入口资源体积
+
 ## 0.2.0-beta.3
 
 ### Minor Changes

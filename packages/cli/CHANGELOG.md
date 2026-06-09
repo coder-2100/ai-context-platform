@@ -1,5 +1,13 @@
 # @coder-2100/cli
 
+## 0.2.0-beta.7
+
+### Patch Changes
+
+- 修复 removebug；优化入口资源体积
+- Updated dependencies
+  - @coder-2100/schema@0.2.0-beta.4
+
 ## 0.2.0-beta.6
 
 ### Patch Changes
