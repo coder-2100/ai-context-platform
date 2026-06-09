@@ -18,9 +18,12 @@ export class ClaudeCodeAdapter implements Adapter {
     input: AdapterInput,
     contents: ExtractedContent[],
     projectName: string,
+    /** 仅用于索引的内容列表，未传入时使用 contents（向后兼容） */
+    indexOnlyContents?: ExtractedContent[],
   ): AdapterOutput {
+    const indexTarget = indexOnlyContents ?? contents;
     const indexContent = `# Project Context\n\n${buildIndex({
-      contents,
+      contents: indexTarget,
       task: input.task,
       projectName,
       runtimeDir: ".ai/runtime",

@@ -68,8 +68,14 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
 
     // 提取所有内容
     const allContents = [];
+    /** 只有 isEntry 包的内容进入索引 */
+    const indexContents = [];
     const cacheDir = options.cacheDir ?? GLOBAL_CACHE_DIR;
     const lockfile = pm.getLockfile();
+    /** 标记哪些包是用户直接添加的（isEntry） */
+    const entryPackageNames = new Set(
+      config.packages.filter((p) => p.isEntry).map((p) => p.name),
+    );
     for (const pkg of installedPackages) {
       const lockEntry = lockfile.packages[pkg.name];
       const contents = await extractContent(
@@ -80,6 +86,9 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
         lockEntry?.version,
       );
       allContents.push(...contents);
+      if (entryPackageNames.has(pkg.name)) {
+        indexContents.push(...contents);
+      }
     }
 
     // 使用 adapter 渲染输出
@@ -102,6 +111,7 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
       },
       allContents,
       config.project.name,
+      indexContents,
     );
 
     if (options.dryRun) {

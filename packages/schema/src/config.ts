@@ -4,6 +4,8 @@ import { z } from "zod";
 const PackageRefSchema = z.object({
   name: z.string().min(1),
   version: z.string().optional(),
+  /** 是否为用户通过 add 命令直接添加的包，true 时写入索引文件 */
+  isEntry: z.boolean().default(false),
 });
 
 /** 单个 AI 工具的启用和部署配置 */

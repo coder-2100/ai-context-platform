@@ -120,14 +120,22 @@ export class PackageManager {
 
     for (const input of packageNames) {
       const { name, range } = parser.parse(input);
-      if (existingNames.has(name)) continue;
+      if (existingNames.has(name)) {
+        // 已安装但非 isEntry 的包，升级为 isEntry
+        const existing = this.config!.packages.find((p) => p.name === name);
+        if (existing && !existing.isEntry) {
+          existing.isEntry = true;
+          this.persist();
+        }
+        continue;
+      }
 
       const resolved = await this.resolveManifest(name, range);
       if (!resolved) {
         throw new Error(`包 ${name} 未找到`);
       }
 
-      await this.installPackageWithDependencies(name, resolved);
+      await this.installPackageWithDependencies(name, resolved, true);
       installed.push(name);
       existingNames.add(name);
     }
@@ -462,8 +470,10 @@ export class PackageManager {
   private async installPackageWithDependencies(
     name: string,
     resolved: ResolvedPackageInfo,
+    /** 是否为用户通过 add 命令直接添加的包 */
+    isEntry = false,
   ): Promise<void> {
-    // 先安装非可选依赖
+    // 先安装非可选依赖（依赖包 isEntry 为 false）
     for (const dep of resolved.manifest.dependencies) {
       if (
         !dep.optional &&
@@ -471,7 +481,7 @@ export class PackageManager {
       ) {
         const depResolved = await this.resolveManifest(dep.name, dep.version);
         if (depResolved) {
-          await this.installPackageWithDependencies(dep.name, depResolved);
+          await this.installPackageWithDependencies(dep.name, depResolved, false);
         }
       }
     }
@@ -480,6 +490,7 @@ export class PackageManager {
     this.config!.packages.push({
       name,
       version: `^${resolved.manifest.version}`,
+      isEntry,
     });
 
     // 写入 lockfile

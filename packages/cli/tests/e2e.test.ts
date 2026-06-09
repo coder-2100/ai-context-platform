@@ -31,7 +31,7 @@ describe("端到端流程", () => {
       expect(existsSync(join(TEST_DIR, ".ai", "config.yaml"))).toBe(true);
       expect(existsSync(join(TEST_DIR, "CLAUDE.md"))).toBe(true);
 
-      // 2. add
+      // 2. add react-rules（会自动安装 core-engineering 依赖）
       await addCommand({
         projectDir: TEST_DIR,
         packageNames: ["@coder-2100/react-rules"],
@@ -50,6 +50,7 @@ describe("端到端流程", () => {
         tool: "claude-code",
         assetsDir: ASSETS_DIR,
       });
+      // 所有包的 runtime 文件都写入
       expect(
         existsSync(
           join(TEST_DIR, ".ai", "runtime", "rules", "core-coding-standards.md"),
@@ -67,22 +68,25 @@ describe("端到端流程", () => {
       ).toBe(true);
 
       const claudeMd = readFileSync(join(TEST_DIR, "CLAUDE.md"), "utf-8");
-      expect(claudeMd).toContain("Core Coding Standards");
+      // isEntry: true 的包出现在索引中
       expect(claudeMd).toContain("react-hooks-rules");
       expect(claudeMd).toContain("Current Task: review");
+      // isEntry: false 的依赖包不在索引中
+      expect(claudeMd).not.toContain("Core Coding Standards");
 
       // 4. remove — removeCommand 内部自动触发 build
       await removeCommand({
         projectDir: TEST_DIR,
-        packageName: "@coder-2100/core-engineering",
+        packageName: "@coder-2100/react-rules",
       });
+      // 移除 react-rules 后，其依赖 core-engineering 也被级联移除
       const listAfterRemove = await listCommand({
         projectDir: TEST_DIR,
         assetsDir: ASSETS_DIR,
       });
       const names = listAfterRemove.map((p) => p.name);
+      expect(names).not.toContain("@coder-2100/react-rules");
       expect(names).not.toContain("@coder-2100/core-engineering");
-      expect(names).toContain("@coder-2100/react-rules");
     },
     30000,
   );
