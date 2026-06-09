@@ -1,5 +1,11 @@
 # @coder-2100/cli
 
+## 0.2.0-beta.6
+
+### Patch Changes
+
+- 修复 remove 指令 bug
+
 ## 0.2.0-beta.5
 
 ### Minor Changes
