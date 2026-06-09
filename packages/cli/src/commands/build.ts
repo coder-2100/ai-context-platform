@@ -70,6 +70,7 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
     const allContents = [];
     /** 只有 isEntry 包的内容进入索引 */
     const indexContents = [];
+
     const cacheDir = options.cacheDir ?? GLOBAL_CACHE_DIR;
     const lockfile = pm.getLockfile();
     /** 标记哪些包是用户直接添加的（isEntry） */
