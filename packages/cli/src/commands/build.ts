@@ -1,4 +1,10 @@
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import type { ResolvedPackage } from "@coder-2100/schema";
 import chalk from "chalk";
@@ -22,11 +28,30 @@ export interface BuildOptions {
   verbose?: boolean;
 }
 
-/** 构建运行时上下文：提取内容 → 适配器渲染 → 写入索引和内容文件 */
+/** 清空 .ai/runtime/ 下各子目录中的文件，保留目录结构 */
+function cleanRuntimeDir(projectDir: string): void {
+  const runtimeDir = join(projectDir, ".ai", "runtime");
+  if (!existsSync(runtimeDir)) return;
+  for (const sub of readdirSync(runtimeDir, { withFileTypes: true })) {
+    if (sub.isDirectory()) {
+      const subDir = join(runtimeDir, sub.name);
+      for (const file of readdirSync(subDir, { withFileTypes: true })) {
+        rmSync(join(subDir, file.name), { recursive: true, force: true });
+      }
+    }
+  }
+}
+
+/** 构建运行时上下文：清理旧文件 → 提取内容 → 适配器渲染 → 写入索引和内容文件 */
 export async function buildCommand(options: BuildOptions): Promise<void> {
   const spinner = ora("Building runtime context...").start();
 
   try {
+    // 干跑模式不清理也不写入
+    if (!options.dryRun) {
+      cleanRuntimeDir(options.projectDir);
+    }
+
     const pm = new PackageManager({
       projectDir: options.projectDir,
       assetsDir: options.assetsDir,
