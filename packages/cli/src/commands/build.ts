@@ -13,7 +13,10 @@ import { ClaudeCodeAdapter } from "../adapters/claude";
 import { type ToolName, getCapabilities } from "../adapters/types";
 import { GLOBAL_CACHE_DIR } from "../core/paths";
 import { PackageManager } from "../core/package-manager";
-import { extractContent } from "../engine/content-extraction";
+import {
+  extractContent,
+  resolveInheritedContent,
+} from "../engine/content-extraction";
 import { writeIndexFile } from "../engine/index-builder";
 
 /** build 命令的选项 */
@@ -78,13 +81,25 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
     );
     for (const pkg of installedPackages) {
       const lockEntry = lockfile.packages[pkg.name];
-      const contents = await extractContent(
+      let contents = await extractContent(
         options.assetsDir,
         pkg.name,
         config.scope,
         cacheDir,
         lockEntry?.version,
       );
+
+      // 解析 extends 继承
+      if (pkg.manifest.extends.length > 0) {
+        contents = await resolveInheritedContent(
+          options.assetsDir,
+          contents,
+          pkg.manifest.extends,
+          config.scope,
+          cacheDir,
+        );
+      }
+
       allContents.push(...contents);
       if (entryPackageNames.has(pkg.name)) {
         indexContents.push(...contents);
