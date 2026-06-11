@@ -86,6 +86,68 @@ describe("buildIndex", () => {
     });
     expect(index).toContain("No packages installed yet");
   });
+
+  it("同 id 的内容只保留最高优先级版本", () => {
+    const duplicateContents: ExtractedContent[] = [
+      {
+        type: "rule",
+        id: "core-coding-standards",
+        name: "Core Coding Standards",
+        content: "# Core Coding Standards\nLow priority version\nLess detailed rules.",
+        priority: "low",
+        appliesTo: ["review"],
+        sourcePath: "rules/coding-standards-low.md",
+      },
+      {
+        type: "rule",
+        id: "core-coding-standards",
+        name: "Core Coding Standards",
+        content: "# Core Coding Standards\nHigh priority version\nMore detailed rules.",
+        priority: "high",
+        appliesTo: ["review", "implement"],
+        sourcePath: "rules/coding-standards-high.md",
+      },
+    ];
+    const index = buildIndex({
+      contents: duplicateContents,
+      task: "review",
+      projectName: "my-project",
+      runtimeDir: ".ai/runtime",
+    });
+    expect(index).toContain("High priority version");
+    expect(index).not.toContain("Low priority version");
+  });
+
+  it("不同 id 的内容全部保留", () => {
+    const differentContents: ExtractedContent[] = [
+      {
+        type: "rule",
+        id: "rule-a",
+        name: "Rule A",
+        content: "Content A",
+        priority: "high",
+        appliesTo: ["review"],
+        sourcePath: "rules/a.md",
+      },
+      {
+        type: "rule",
+        id: "rule-b",
+        name: "Rule B",
+        content: "Content B",
+        priority: "low",
+        appliesTo: ["review"],
+        sourcePath: "rules/b.md",
+      },
+    ];
+    const index = buildIndex({
+      contents: differentContents,
+      task: "review",
+      projectName: "my-project",
+      runtimeDir: ".ai/runtime",
+    });
+    expect(index).toContain("Rule A");
+    expect(index).toContain("Rule B");
+  });
 });
 
 describe("writeIndexFile", () => {

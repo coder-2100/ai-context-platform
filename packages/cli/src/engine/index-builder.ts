@@ -24,10 +24,13 @@ export function buildIndex(options: BuildIndexOptions): string {
     return "No packages installed yet. Run `ai-context add` or `ai-context browse` to get started.";
   }
 
+  // 同 id 去重：保留最高优先级版本
+  const deduplicated = deduplicateById(contents);
+
   const lines: string[] = [];
 
   // Core rules section (critical + high priority rules)
-  const coreRules = contents
+  const coreRules = deduplicated
     .filter(
       (c) =>
         c.type === "rule" &&
@@ -46,7 +49,7 @@ export function buildIndex(options: BuildIndexOptions): string {
   }
 
   // Current task section
-  const taskContents = contents.filter(
+  const taskContents = deduplicated.filter(
     (c) => c.appliesTo.length === 0 || c.appliesTo.includes(task),
   );
   const priorityResources = taskContents
@@ -85,7 +88,7 @@ export function buildIndex(options: BuildIndexOptions): string {
   );
   lines.push("");
 
-  const grouped = groupByType(contents);
+  const grouped = groupByType(deduplicated);
   const typeLabels: Record<string, string> = {
     rule: "Rules",
     skill: "Skills",
@@ -159,6 +162,18 @@ function extractDescription(content: string): string {
     }
   }
   return "";
+}
+
+/** 对同 id 的内容去重，保留最高优先级版本 */
+function deduplicateById(contents: ExtractedContent[]): ExtractedContent[] {
+  const map = new Map<string, ExtractedContent>();
+  for (const c of contents) {
+    const existing = map.get(c.id);
+    if (!existing || PRIORITY_WEIGHTS[c.priority] > PRIORITY_WEIGHTS[existing.priority]) {
+      map.set(c.id, c);
+    }
+  }
+  return [...map.values()];
 }
 
 /** 按内容类型分组 */
