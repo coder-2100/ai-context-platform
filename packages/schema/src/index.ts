@@ -5,6 +5,8 @@ export * from "./manifest";
 export * from "./rule";
 export * from "./skill";
 export * from "./agent";
+export * from "./domain";
+export * from "./playbook";
 export * from "./adapter";
 export * from "./config";
 export * from "./lockfile";
