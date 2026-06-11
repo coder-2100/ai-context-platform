@@ -1,0 +1,27 @@
+{
+  "name": "@coder-2100/backend-security",
+  "version": "0.1.0",
+  "description": "后端安全编码规范",
+  "license": "MIT",
+  "type": "module",
+  "main": "manifest.yaml",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "files": [
+    "manifest.yaml",
+    "rules/",
+    "README.md"
+  ],
+  "keywords": [
+    "ai-context",
+    "rules",
+    "security",
+    "backend"
+  ],
+  "aiContext": {
+    "type": "rules",
+    "layer": "stack"
+  }
+}
