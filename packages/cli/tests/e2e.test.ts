@@ -126,4 +126,99 @@ describe("端到端流程", () => {
     },
     30000,
   );
+
+  it("多包 build 正确处理冲突和排序", { timeout: 15000 }, async () => {
+    await initCommand({
+      projectDir: TEST_DIR,
+      projectName: "e2e-pipeline",
+      assetsDir: ASSETS_DIR,
+    });
+    await addCommand({
+      projectDir: TEST_DIR,
+      packageNames: ["@coder-2100/react-rules"],
+      assetsDir: ASSETS_DIR,
+    });
+    await buildCommand({
+      projectDir: TEST_DIR,
+      task: "review",
+      tool: "claude-code",
+      assetsDir: ASSETS_DIR,
+    });
+
+    // 验证所有包的 runtime 文件都存在（entry + dependency 都被写入）
+    expect(
+      existsSync(join(TEST_DIR, ".ai", "runtime", "rules", "core-coding-standards.md")),
+    ).toBe(true);
+    expect(
+      existsSync(join(TEST_DIR, ".ai", "runtime", "rules", "react-hooks-rules.md")),
+    ).toBe(true);
+    expect(
+      existsSync(join(TEST_DIR, ".ai", "runtime", "skills", "react-review-skill.md")),
+    ).toBe(true);
+
+    // 验证 CLAUDE.md 索引：只包含 isEntry 包的内容
+    const claudeMd = readFileSync(join(TEST_DIR, "CLAUDE.md"), "utf-8");
+    expect(claudeMd).toContain("Current Task: review");
+    expect(claudeMd).toContain("react-hooks-rules");
+    // 依赖包 core-engineering 的内容不应进入索引
+    expect(claudeMd).not.toContain("core-coding-standards");
+  });
+
+  it("不同 task 生成不同索引高亮", { timeout: 15000 }, async () => {
+    await initCommand({
+      projectDir: TEST_DIR,
+      projectName: "e2e-tasks",
+      assetsDir: ASSETS_DIR,
+    });
+    await addCommand({
+      projectDir: TEST_DIR,
+      packageNames: ["@coder-2100/migration-playbook"],
+      assetsDir: ASSETS_DIR,
+    });
+
+    // review task
+    await buildCommand({
+      projectDir: TEST_DIR,
+      task: "review",
+      tool: "claude-code",
+      assetsDir: ASSETS_DIR,
+    });
+    let claudeMd = readFileSync(join(TEST_DIR, "CLAUDE.md"), "utf-8");
+    expect(claudeMd).toContain("Current Task: review");
+
+    // migration task
+    await buildCommand({
+      projectDir: TEST_DIR,
+      task: "migration",
+      tool: "claude-code",
+      assetsDir: ASSETS_DIR,
+    });
+    claudeMd = readFileSync(join(TEST_DIR, "CLAUDE.md"), "utf-8");
+    expect(claudeMd).toContain("Current Task: migration");
+  });
+
+  it("Codex 适配器生成 AGENTS.md", { timeout: 15000 }, async () => {
+    await initCommand({
+      projectDir: TEST_DIR,
+      projectName: "e2e-codex",
+      assetsDir: ASSETS_DIR,
+    });
+    await addCommand({
+      projectDir: TEST_DIR,
+      packageNames: ["@coder-2100/core-engineering"],
+      assetsDir: ASSETS_DIR,
+    });
+    await buildCommand({
+      projectDir: TEST_DIR,
+      task: "review",
+      tool: "codex",
+      assetsDir: ASSETS_DIR,
+    });
+    expect(existsSync(join(TEST_DIR, "AGENTS.md"))).toBe(true);
+    const agentsMd = readFileSync(join(TEST_DIR, "AGENTS.md"), "utf-8");
+    expect(agentsMd).toContain("core-coding-standards");
+    expect(
+      existsSync(join(TEST_DIR, ".ai", "runtime", "rules", "core-coding-standards.md")),
+    ).toBe(true);
+  });
 });
