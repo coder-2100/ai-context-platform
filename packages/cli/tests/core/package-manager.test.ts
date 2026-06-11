@@ -134,4 +134,19 @@ describe("PackageManager", () => {
     expect(names).toContain("@coder-2100/react-rules");
     expect(names).toContain("@coder-2100/core-engineering");
   });
+
+  it("add 安装的依赖与已有包版本兼容时不报错", async () => {
+    const pm = createPM();
+    await pm.init("test-project");
+    // core-engineering 作为 react-rules 的依赖会被自动安装
+    await pm.add(["@coder-2100/react-rules"]);
+    // 再次安装 core-engineering 不应报错（版本兼容）
+    await pm.add(["@coder-2100/core-engineering"]);
+    const config = pm.getConfig();
+    const coreEntries = config.packages.filter(
+      (p) => p.name === "@coder-2100/core-engineering",
+    );
+    expect(coreEntries).toHaveLength(1);
+    expect(coreEntries[0].isEntry).toBe(true);
+  });
 });
