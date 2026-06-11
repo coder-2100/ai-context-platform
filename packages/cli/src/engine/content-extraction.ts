@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { Priority } from "@coder-2100/schema";
+import type { Layer, Priority } from "@coder-2100/schema";
 import matter from "gray-matter";
 import { RegistryClient } from "../core/registry-client";
 
@@ -11,6 +11,8 @@ export interface ExtractedContent {
   name: string;
   content: string;
   priority: Priority;
+  /** 内容所属层级，从 frontmatter 继承或从 manifest 推断 */
+  layer: Layer;
   appliesTo: string[];
   sourcePath: string;
 }
@@ -101,7 +103,9 @@ export async function extractContent(
       const id =
         (frontmatter.id as string) ||
         entryPath.replace(/\.md$/, "").split("/").pop()!;
-      const priority = (frontmatter.priority as Priority) || "medium";
+      // 优先从 frontmatter 读取 layer/priority，缺失时回退到 manifest 的包级配置
+      const layer = (frontmatter.layer as Layer) || manifest.layer;
+      const priority = (frontmatter.priority as Priority) || manifest.priority;
       const appliesTo = (frontmatter.appliesTo as string[]) || [];
       const name = id
         .split("-")
@@ -114,6 +118,7 @@ export async function extractContent(
         name,
         content: body.trim(),
         priority,
+        layer,
         appliesTo,
         sourcePath: entryPath,
       });
@@ -197,4 +202,51 @@ export async function resolveInheritedContent(
     ...c,
     appliesTo: c.appliesTo.length === 0 ? allTasks : c.appliesTo,
   }));
+}
+
+/** 按类型分离的结构化 frontmatter 集合 */
+export interface CategorizedFrontmatters {
+  rules: import("@coder-2100/schema").RuleFrontmatter[];
+  skills: import("@coder-2100/schema").SkillFrontmatter[];
+  agents: import("@coder-2100/schema").AgentFrontmatter[];
+  domains: import("@coder-2100/schema").DomainFrontmatter[];
+  playbooks: import("@coder-2100/schema").PlaybookFrontmatter[];
+}
+
+/**
+ * 从已提取的内容列表中分离并转换为结构化 frontmatter
+ * 用于填充 AdapterInput 的 rules/skills/agents/domains/playbooks 字段
+ */
+export function extractFrontmatterFromContents(
+  contents: ExtractedContent[],
+): CategorizedFrontmatters {
+  const result: CategorizedFrontmatters = {
+    rules: [],
+    skills: [],
+    agents: [],
+    domains: [],
+    playbooks: [],
+  };
+
+  for (const c of contents) {
+    switch (c.type) {
+      case "rule":
+        result.rules.push({ id: c.id, priority: c.priority, layer: c.layer, appliesTo: c.appliesTo });
+        break;
+      case "skill":
+        result.skills.push({ id: c.id, type: "skill", priority: c.priority, appliesTo: c.appliesTo });
+        break;
+      case "agent":
+        result.agents.push({ id: c.id, type: "agent", priority: c.priority, appliesTo: c.appliesTo });
+        break;
+      case "domain":
+        result.domains.push({ id: c.id, priority: c.priority, appliesTo: c.appliesTo });
+        break;
+      case "playbook":
+        result.playbooks.push({ id: c.id, priority: c.priority, appliesTo: c.appliesTo });
+        break;
+    }
+  }
+
+  return result;
 }

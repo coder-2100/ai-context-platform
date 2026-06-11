@@ -11,6 +11,7 @@ const mockContents: ExtractedContent[] = [
     content:
       "# Core Coding Standards\n\n- Prefer composition over inheritance\n- Small functions",
     priority: "high",
+    layer: "core",
     appliesTo: ["review", "implement"],
     sourcePath: "rules/coding-standards.md",
   },
@@ -20,6 +21,7 @@ const mockContents: ExtractedContent[] = [
     name: "React Review Skill",
     content: "# React Review Skill\n\nFocus on rendering performance.",
     priority: "medium",
+    layer: "stack",
     appliesTo: ["review"],
     sourcePath: "skills/react-review.md",
   },
