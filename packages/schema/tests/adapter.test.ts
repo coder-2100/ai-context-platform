@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { AdapterOutputSchema, ToolCapabilitiesSchema } from "../src/adapter";
+import {
+  AdapterOutputSchema,
+  ToolCapabilitiesSchema,
+} from "../src/adapter";
+import { DomainFrontmatterSchema, PlaybookFrontmatterSchema } from "../src";
 
 describe("ToolCapabilitiesSchema", () => {
   it("接受有效的 claude-code capabilities", () => {
@@ -69,5 +73,25 @@ describe("AdapterOutputSchema", () => {
       instructions: [],
     });
     expect(result.success).toBe(true);
+  });
+});
+
+describe("AdapterInput 类型完整性", () => {
+  it("AdapterInput.domains 使用 DomainFrontmatter 类型", () => {
+    const domain = DomainFrontmatterSchema.parse({
+      id: "payment",
+      priority: "high",
+      appliesTo: ["review"],
+    });
+    expect(domain.id).toBe("payment");
+  });
+
+  it("AdapterInput.playbooks 使用 PlaybookFrontmatter 类型", () => {
+    const playbook = PlaybookFrontmatterSchema.parse({
+      id: "migration",
+      priority: "medium",
+      appliesTo: ["migration"],
+    });
+    expect(playbook.id).toBe("migration");
   });
 });
