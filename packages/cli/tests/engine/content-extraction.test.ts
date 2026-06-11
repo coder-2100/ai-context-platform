@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   extractContent,
   parseFrontmatter,
+  resolveInheritedContent,
 } from "../../src/engine/content-extraction";
 
 const ASSETS_DIR = join(
@@ -63,5 +64,55 @@ describe("extractContent", () => {
   it("提取不存在包返回空数组", async () => {
     const contents = await extractContent(ASSETS_DIR, "nonexistent");
     expect(contents).toEqual([]);
+  });
+});
+
+describe("resolveInheritedContent", () => {
+  it("无 extends 时不修改内容", async () => {
+    const original = [
+      {
+        type: "rule" as const,
+        id: "standalone-rule",
+        name: "Standalone Rule",
+        content: "Standalone content",
+        priority: "medium" as const,
+        appliesTo: ["implement"],
+        sourcePath: "rules/standalone.md",
+      },
+    ];
+    const contents = await resolveInheritedContent(
+      ASSETS_DIR,
+      original,
+      [],
+      "@coder-2100",
+    );
+    expect(contents).toEqual(original);
+  });
+
+  it("合并父包的 appliesTo 到子包", async () => {
+    const contents = await resolveInheritedContent(
+      ASSETS_DIR,
+      [
+        {
+          type: "rule" as const,
+          id: "extended-rule",
+          name: "Extended Rule",
+          content: "Extended content",
+          priority: "high" as const,
+          // 子包未指定 appliesTo 时，应继承父包所有 task 类型
+          appliesTo: [],
+          sourcePath: "rules/extended.md",
+        },
+      ],
+      ["@coder-2100/core-engineering"],
+      "@coder-2100",
+    );
+    // 父包 core-engineering 的 appliesTo 包含 review, implement, debug, migration, architecture, test
+    // 子包无 appliesTo，合并后应包含所有父包的 task 类型
+    expect(contents[0].appliesTo).toContain("review");
+    expect(contents[0].appliesTo).toContain("implement");
+    expect(contents[0].appliesTo).toContain("test");
+    // 验证父包的 task 类型被合并进来
+    expect(contents[0].appliesTo.length).toBeGreaterThan(1);
   });
 });
