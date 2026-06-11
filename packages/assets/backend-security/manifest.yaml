@@ -1,0 +1,36 @@
+schemaVersion: "1"
+name: backend-security
+version: 0.1.0
+type: rules
+layer: stack
+description: 后端安全编码规范，覆盖输入校验、认证授权、注入防护和敏感数据处理
+priority: high
+tags:
+  - security
+  - backend
+  - input-validation
+  - authentication
+compatibleTools:
+  - claude-code
+  - codex
+  - trae
+  - gemini
+author: ai-context-platform
+license: MIT
+entry:
+  rules:
+    - rules/input-validation.md
+    - rules/auth-security.md
+  skills: []
+  agents: []
+  domains: []
+  playbooks: []
+  templates: []
+appliesTo:
+  - review
+  - implement
+dependencies:
+  - name: "@coder-2100/core-engineering"
+    version: ^1.0.0
+    optional: false
+peerDependencies: []
