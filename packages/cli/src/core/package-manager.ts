@@ -19,6 +19,7 @@ import { RegistryClient } from "./registry-client";
 import { PackageNameParser } from "./package-name-parser";
 import { NpmRegistryClient } from "./npm-registry-client";
 import { CacheManager } from "./cache";
+import { detectCircularDependency } from "./dependency-graph";
 import { GLOBAL_CACHE_DIR } from "./paths";
 
 /** PackageManager 构造选项 */
@@ -136,6 +137,29 @@ export class PackageManager {
       }
 
       await this.installPackageWithDependencies(name, resolved, true);
+
+      // 安装后检测循环依赖
+      const depGraph = this.buildDependencyGraph();
+      const cycle = detectCircularDependency(depGraph);
+      if (cycle) {
+        // 回滚：移除本次安装的所有包
+        for (const installedName of installed) {
+          const idx = this.config!.packages.findIndex((p) => p.name === installedName);
+          if (idx !== -1) {
+            this.config!.packages.splice(idx, 1);
+            this.lockfile = removePackageFromLockfile(this.lockfile!, installedName);
+          }
+        }
+        // 移除当前包
+        const curIdx = this.config!.packages.findIndex((p) => p.name === name);
+        if (curIdx !== -1) {
+          this.config!.packages.splice(curIdx, 1);
+          this.lockfile = removePackageFromLockfile(this.lockfile!, name);
+        }
+        this.persist();
+        throw new Error(`检测到循环依赖: ${cycle.join(" → ")}`);
+      }
+
       installed.push(name);
       existingNames.add(name);
     }
