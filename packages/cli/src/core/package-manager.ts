@@ -499,14 +499,29 @@ export class PackageManager {
   ): Promise<void> {
     // 先安装非可选依赖（依赖包 isEntry 为 false）
     for (const dep of resolved.manifest.dependencies) {
-      if (
-        !dep.optional &&
-        !this.config!.packages.some((p) => p.name === dep.name)
-      ) {
-        const depResolved = await this.resolveManifest(dep.name, dep.version);
-        if (depResolved) {
-          await this.installPackageWithDependencies(dep.name, depResolved, false);
+      // 跳过可选依赖
+      if (dep.optional) continue;
+
+      const existingRef = this.config!.packages.find((p) => p.name === dep.name);
+      if (existingRef) {
+        // 依赖已存在，进行 major 版本冲突检测
+        // 提取已安装版本的 major 号（去掉 ^ 前缀后取第一个数字段）
+        const existingVersion = existingRef.version?.replace(/^\^/, "") || "";
+        const existingMajor = existingVersion.split(".")[0];
+        // 提取依赖要求的 major 号
+        const requiredMajor = dep.version.replace(/^\^/, "").split(".")[0];
+        if (requiredMajor !== existingMajor && existingMajor) {
+          throw new Error(
+            `版本冲突: ${dep.name} 已安装 ${existingRef.version}，但 ${name} 需要 ${dep.version}。major 版本不一致，请手动解决。`,
+          );
         }
+        // major 一致，已满足，跳过安装
+        continue;
+      }
+
+      const depResolved = await this.resolveManifest(dep.name, dep.version);
+      if (depResolved) {
+        await this.installPackageWithDependencies(dep.name, depResolved, false);
       }
     }
 
