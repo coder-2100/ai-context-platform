@@ -27,6 +27,15 @@ export const PRIORITY_WEIGHTS: Record<Priority, number> = {
   low: 25,
 };
 
+/** 层级对应的权重分数，层级越高权重越大，用于冲突解决和排序 */
+export const LAYER_WEIGHTS: Record<Layer, number> = {
+  core: 10,
+  stack: 20,
+  domain: 30,
+  project: 40,
+  runtime: 50,
+};
+
 /** 知识资产包的类型分类 */
 export const PackageType = {
   RULES: "rules",
