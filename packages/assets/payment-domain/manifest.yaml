@@ -1,0 +1,40 @@
+schemaVersion: "1"
+name: payment-domain
+version: 0.1.0
+type: domains
+layer: domain
+description: 支付领域知识，覆盖核心流程、状态机、异常处理和对账逻辑
+priority: medium
+tags:
+  - payment
+  - domain
+  - fintech
+  - transaction
+compatibleTools:
+  - claude-code
+  - codex
+  - trae
+  - gemini
+author: ai-context-platform
+license: MIT
+entry:
+  rules: []
+  skills: []
+  agents: []
+  domains:
+    - domains/payment-basics.md
+    - domains/payment-exceptions.md
+  playbooks: []
+  templates: []
+appliesTo:
+  - review
+  - implement
+  - migration
+dependencies:
+  - name: "@coder-2100/core-engineering"
+    version: ^1.0.0
+    optional: false
+  - name: "@coder-2100/backend-security"
+    version: ^0.1.0
+    optional: false
+peerDependencies: []
