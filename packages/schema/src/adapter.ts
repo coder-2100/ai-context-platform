@@ -70,8 +70,9 @@ export interface AdapterInput {
   rules: import("./rule").RuleFrontmatter[];
   skills: import("./skill").SkillFrontmatter[];
   agents: import("./agent").AgentFrontmatter[];
-  domains: { id: string; name: string; description: string }[];
-  playbooks: { id: string; name: string; description: string }[];
+  // domains/playbooks 复用包内领域与操作手册的 frontmatter 类型，避免重复定义
+  domains: import("./domain").DomainFrontmatter[];
+  playbooks: import("./playbook").PlaybookFrontmatter[];
   indexBudget: number;
   contentBudget: number;
   toolCapabilities: ToolCapabilities;
@@ -87,5 +88,7 @@ export interface Adapter {
     input: AdapterInput,
     contents: ContentFile[],
     projectName: string,
+    /** 仅用于索引的内容列表（isEntry 筛选后），未传入时使用 contents */
+    indexOnlyContents?: ContentFile[],
   ): AdapterOutput;
 }
