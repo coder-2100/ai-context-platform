@@ -10,6 +10,7 @@
     "lint:fix": "biome check --write .",
     "validate": "tsx scripts/validate-manifest.ts && tsx scripts/sync-versions.ts",
     "sync-versions": "tsx scripts/sync-versions.ts",
+    "check-circular-deps": "tsx scripts/check-circular-deps.ts",
     "generate:schema": "tsx scripts/generate-json-schema.ts",
     "docs:dev": "pnpm --filter @coder-2100/docs dev",
     "docs:build": "pnpm --filter @coder-2100/docs build",
