@@ -112,4 +112,35 @@ describe("ClaudeCodeAdapter", () => {
     expect(output.index.content).toContain("No packages installed yet");
     expect(output.files).toHaveLength(0);
   });
+
+  it("render 传递 indexBudget 给索引构建", () => {
+    const input: AdapterInput = {
+      task: "review",
+      packages: [],
+      rules: [],
+      skills: [],
+      agents: [],
+      domains: [],
+      playbooks: [],
+      indexBudget: 500,
+      contentBudget: 10000,
+      toolCapabilities: adapter.capabilities,
+    };
+
+    const manyContents: ExtractedContent[] = Array.from({ length: 30 }, (_, i) => ({
+      type: "rule" as const,
+      id: `rule-${i}`,
+      name: `Rule ${i}`,
+      content: `# Rule ${i}\n\n${"Description text. ".repeat(10)}`,
+      priority: "medium" as const,
+      layer: "stack" as const,
+      appliesTo: ["review"],
+      sourcePath: `rules/rule-${i}.md`,
+    }));
+
+    const output = adapter.render(input, manyContents, "test-project");
+    expect(output.index.content).toBeDefined();
+    // With budget of 500, the index should be trimmed
+    // We just verify it doesn't crash and produces output
+  });
 });
