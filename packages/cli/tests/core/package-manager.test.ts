@@ -123,4 +123,15 @@ describe("PackageManager", () => {
     // 项目本地仍不应有 .ai/cache
     expect(existsSync(join(TEST_DIR, ".ai", "cache"))).toBe(false);
   });
+
+  it("add 安装包后检测循环依赖（本地包无循环，正常安装）", async () => {
+    const pm = createPM();
+    await pm.init("test-project");
+    // 本地资产包无循环依赖，正常安装不应抛错
+    await pm.add(["@coder-2100/react-rules"]);
+    const config = pm.getConfig();
+    const names = config.packages.map((p) => p.name);
+    expect(names).toContain("@coder-2100/react-rules");
+    expect(names).toContain("@coder-2100/core-engineering");
+  });
 });
