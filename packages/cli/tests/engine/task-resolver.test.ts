@@ -11,6 +11,7 @@ function makeContent(overrides: Partial<ExtractedContent> & { id: string }): Ext
     name: overrides.name ?? overrides.id,
     content: overrides.content ?? `Content for ${overrides.id}`,
     priority: overrides.priority ?? "medium",
+    layer: overrides.layer ?? "stack",
     appliesTo: overrides.appliesTo ?? [],
     sourcePath: overrides.sourcePath ?? `rules/${overrides.id}.md`,
     ...overrides,
