@@ -1,7 +1,6 @@
 import chalk from "chalk";
 import { PackageManager } from "../core/package-manager";
 import { buildCommand } from "./build";
-import type { ToolName } from "../adapters/types";
 
 /** remove 命令的选项 */
 export interface RemoveOptions {
@@ -37,7 +36,7 @@ export async function removeCommand(options: RemoveOptions): Promise<void> {
   await buildCommand({
     projectDir: options.projectDir,
     task: "review",
-    tool: "claude-code" as ToolName,
+    tool: "claude-code",
     assetsDir: config.assetsDir,
   });
 }
