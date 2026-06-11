@@ -1,0 +1,20 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@coder-2100/core-engineering": "1.0.0",
+    "@coder-2100/react-rules": "1.0.0",
+    "@coder-2100/cli": "0.1.0",
+    "@coder-2100/schema": "0.1.0"
+  },
+  "changesets": [
+    "big-boxes-repeat",
+    "global-cache-migration",
+    "heavy-cougars-scream",
+    "honest-llamas-invent",
+    "huge-readers-report",
+    "little-adults-beam",
+    "metal-stamps-beam",
+    "swift-teeth-warn"
+  ]
+}
