@@ -1,4 +1,4 @@
-import type { ToolCapabilities } from "@coder-2100/schema";
+import type { Adapter, ToolCapabilities } from "@coder-2100/schema";
 
 /** Claude Code 的工具能力配置：200k token、多文件和图片支持 */
 export const CLAUDE_CODE_CAPABILITIES: ToolCapabilities = {
@@ -54,5 +54,24 @@ export function getCapabilities(tool: ToolName): ToolCapabilities {
       return TRAE_CAPABILITIES;
     case "gemini":
       return GEMINI_CAPABILITIES;
+  }
+}
+
+/** 根据工具名称获取对应的适配器实例（异步，因为 ESM 动态导入） */
+export async function getAdapter(tool: ToolName): Promise<Adapter> {
+  switch (tool) {
+    case "claude-code": {
+      const { ClaudeCodeAdapter } = await import("./claude");
+      return new ClaudeCodeAdapter();
+    }
+    case "codex": {
+      const { CodexAdapter } = await import("./codex");
+      return new CodexAdapter();
+    }
+    default: {
+      // trae 和 gemini 将在 Phase 5 实现，暂回退到 claude-code
+      const { ClaudeCodeAdapter } = await import("./claude");
+      return new ClaudeCodeAdapter();
+    }
   }
 }
