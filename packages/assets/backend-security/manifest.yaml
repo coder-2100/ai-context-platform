@@ -1,6 +1,6 @@
 schemaVersion: "1"
 name: backend-security
-version: 0.1.0
+version: 0.2.0-beta.0
 type: rules
 layer: stack
 description: 后端安全编码规范，覆盖输入校验、认证授权、注入防护和敏感数据处理

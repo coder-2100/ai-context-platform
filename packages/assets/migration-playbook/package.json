@@ -1,6 +1,6 @@
 {
   "name": "@coder-2100/migration-playbook",
-  "version": "0.1.0",
+  "version": "0.2.0-beta.0",
   "description": "数据库迁移操作手册，覆盖迁移规范、回滚策略和数据迁移检查清单",
   "license": "MIT",
   "type": "module",

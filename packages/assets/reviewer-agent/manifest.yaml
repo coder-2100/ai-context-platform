@@ -1,6 +1,6 @@
 schemaVersion: "1"
 name: reviewer-agent
-version: 0.1.0
+version: 0.2.0-beta.0
 type: agents
 layer: stack
 description: 代码审查 Agent，定义审查角色、关注点和拒绝条件

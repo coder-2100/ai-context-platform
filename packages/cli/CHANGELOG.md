@@ -1,5 +1,11 @@
 # @coder-2100/cli
 
+## 0.2.0-beta.8
+
+### Minor Changes
+
+- 拓展 cli 包能力；新增案例包
+
 ## 0.2.0-beta.7
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@coder-2100/payment-domain",
-  "version": "0.1.0",
+  "version": "0.2.0-beta.0",
   "description": "支付领域知识，覆盖核心流程、状态机、异常处理和对账逻辑",
   "license": "MIT",
   "type": "module",
