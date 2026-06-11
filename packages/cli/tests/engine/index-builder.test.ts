@@ -6,6 +6,7 @@ import {
   MARKER_END,
   MARKER_START,
   buildIndex,
+  estimateTokenCount,
   writeIndexFile,
 } from "../../src/engine/index-builder";
 
@@ -180,5 +181,76 @@ describe("writeIndexFile", () => {
     expect(written).not.toContain("old content");
     expect(written).toContain("## Footer");
     expect(written).toContain("Footer content.");
+  });
+});
+
+describe("estimateTokenCount", () => {
+  it("返回正数 token 估算值", () => {
+    const count = estimateTokenCount("Hello, this is a test string.");
+    expect(count).toBeGreaterThan(0);
+    expect(typeof count).toBe("number");
+  });
+
+  it("空字符串返回 0", () => {
+    expect(estimateTokenCount("")).toBe(0);
+  });
+
+  it("较长文本返回更多 token", () => {
+    const short = estimateTokenCount("Hello");
+    const long = estimateTokenCount(
+      "Hello, this is a much longer text with many more words to count.",
+    );
+    expect(long).toBeGreaterThan(short);
+  });
+});
+
+describe("buildIndex 预算控制", () => {
+  // 生成大量规则内容用于测试预算裁剪
+  const manyContents: ExtractedContent[] = Array.from({ length: 50 }, (_, i) => ({
+    type: "rule" as const,
+    id: `rule-${i}`,
+    name: `Rule ${i}`,
+    content: `# Rule ${i}\n\n${"This is a detailed description. ".repeat(20)}`,
+    priority: (i % 2 === 0 ? "medium" : "low") as ExtractedContent["priority"],
+    layer: "stack" as const,
+    appliesTo: ["review"],
+    sourcePath: `rules/rule-${i}.md`,
+  }));
+
+  it("无预算限制时生成完整索引", () => {
+    const index = buildIndex({
+      contents: manyContents,
+      task: "review",
+      projectName: "test",
+      runtimeDir: ".ai/runtime",
+    });
+    for (let i = 0; i < 50; i++) {
+      expect(index).toContain(`rule-${i}`);
+    }
+  });
+
+  it("预算限制时裁剪索引内容", () => {
+    const result = buildIndex({
+      contents: manyContents,
+      task: "review",
+      projectName: "test",
+      runtimeDir: ".ai/runtime",
+      indexBudget: 500,
+    });
+    const tokens = estimateTokenCount(result);
+    // 应在预算内（允许 10% 容差）
+    expect(tokens).toBeLessThanOrEqual(550);
+  });
+
+  it("预算极小时只保留核心信息", () => {
+    const result = buildIndex({
+      contents: manyContents,
+      task: "review",
+      projectName: "test",
+      runtimeDir: ".ai/runtime",
+      indexBudget: 100,
+    });
+    const tokens = estimateTokenCount(result);
+    expect(tokens).toBeLessThanOrEqual(120);
   });
 });
