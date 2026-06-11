@@ -1,0 +1,33 @@
+schemaVersion: "1"
+name: reviewer-agent
+version: 0.1.0
+type: agents
+layer: stack
+description: 代码审查 Agent，定义审查角色、关注点和拒绝条件
+priority: high
+tags:
+  - review
+  - agent
+  - code-quality
+compatibleTools:
+  - claude-code
+  - codex
+  - trae
+  - gemini
+author: ai-context-platform
+license: MIT
+entry:
+  rules: []
+  skills: []
+  agents:
+    - agents/reviewer.md
+  domains: []
+  playbooks: []
+  templates: []
+appliesTo:
+  - review
+dependencies:
+  - name: "@coder-2100/core-engineering"
+    version: ^1.0.0
+    optional: false
+peerDependencies: []

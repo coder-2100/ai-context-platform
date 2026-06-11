@@ -1,0 +1,27 @@
+{
+  "name": "@coder-2100/reviewer-agent",
+  "version": "0.1.0",
+  "description": "代码审查 Agent，定义审查角色、关注点和拒绝条件",
+  "license": "MIT",
+  "type": "module",
+  "main": "manifest.yaml",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "files": [
+    "manifest.yaml",
+    "agents/",
+    "README.md"
+  ],
+  "keywords": [
+    "ai-context",
+    "agents",
+    "review",
+    "code-review"
+  ],
+  "aiContext": {
+    "type": "agents",
+    "layer": "stack"
+  }
+}
