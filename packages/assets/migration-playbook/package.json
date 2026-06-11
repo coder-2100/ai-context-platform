@@ -1,0 +1,27 @@
+{
+  "name": "@coder-2100/migration-playbook",
+  "version": "0.1.0",
+  "description": "数据库迁移操作手册，覆盖迁移规范、回滚策略和数据迁移检查清单",
+  "license": "MIT",
+  "type": "module",
+  "main": "manifest.yaml",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "files": [
+    "manifest.yaml",
+    "playbooks/",
+    "README.md"
+  ],
+  "keywords": [
+    "ai-context",
+    "playbooks",
+    "migration",
+    "database"
+  ],
+  "aiContext": {
+    "type": "playbooks",
+    "layer": "domain"
+  }
+}
