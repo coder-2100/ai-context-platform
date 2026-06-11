@@ -22,11 +22,13 @@ export class ClaudeCodeAdapter implements Adapter {
     indexOnlyContents?: ExtractedContent[],
   ): AdapterOutput {
     const indexTarget = indexOnlyContents ?? contents;
+    // 将 input.indexBudget 透传给 buildIndex，用于索引层 token 预算裁剪
     const indexContent = `# Project Context\n\n${buildIndex({
       contents: indexTarget,
       task: input.task,
       projectName,
       runtimeDir: ".ai/runtime",
+      indexBudget: input.indexBudget,
     })}`;
 
     const files: ContentFile[] = contents.map((c) => ({
