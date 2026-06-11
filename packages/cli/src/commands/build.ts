@@ -9,26 +9,32 @@ import { join } from "node:path";
 import type { ResolvedPackage } from "@coder-2100/schema";
 import chalk from "chalk";
 import ora from "ora";
-import { ClaudeCodeAdapter } from "../adapters/claude";
-import { type ToolName, getCapabilities } from "../adapters/types";
+import { getAdapter } from "../adapters/types";
 import { GLOBAL_CACHE_DIR } from "../core/paths";
 import { PackageManager } from "../core/package-manager";
+import { assembleContents } from "../engine/assembly";
 import {
   extractContent,
+  extractFrontmatterFromContents,
   resolveInheritedContent,
 } from "../engine/content-extraction";
 import { writeIndexFile } from "../engine/index-builder";
+import { rankContents } from "../engine/ranking";
+import { resolveTaskContents } from "../engine/task-resolver";
 
 /** build 命令的选项 */
 export interface BuildOptions {
   projectDir: string;
   task: string;
-  tool: ToolName;
+  /** 目标工具名称，如 claude-code / codex / trae / gemini */
+  tool: string;
   assetsDir?: string;
   /** npm 包缓存目录，默认指向全局 ~/.ai-context/cache，测试可注入 */
   cacheDir?: string;
   dryRun?: boolean;
   verbose?: boolean;
+  /** 为所有已启用的工具生成，开启时忽略 tool 参数 */
+  allTools?: boolean;
 }
 
 /** 清空 .ai/runtime/ 下各子目录中的文件，保留目录结构 */
@@ -45,7 +51,11 @@ function cleanRuntimeDir(projectDir: string): void {
   }
 }
 
-/** 构建运行时上下文：清理旧文件 → 提取内容 → 适配器渲染 → 写入索引和内容文件 */
+/**
+ * 构建运行时上下文，串联完整 Pipeline：
+ * Stage 1 内容提取 → Stage 2 合并与冲突解决 → Stage 3 排序 →
+ * Stage 4 任务解析 → Stage 5 提取 frontmatter → Stage 6 适配器渲染
+ */
 export async function buildCommand(options: BuildOptions): Promise<void> {
   const spinner = ora("Building runtime context...").start();
 
@@ -69,7 +79,7 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
       return;
     }
 
-    // 提取所有内容
+    // ── Stage 1: 内容提取 ──
     const allContents = [];
     /** 只有 isEntry 包的内容进入索引 */
     const indexContents = [];
@@ -106,64 +116,101 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
       }
     }
 
-    // 使用 adapter 渲染输出
-    const capabilities = getCapabilities(options.tool);
-    const adapter = new ClaudeCodeAdapter();
-    const output = adapter.render(
-      {
-        task: options.task,
-        packages: installedPackages,
-        rules: [],
-        skills: [],
-        agents: [],
-        domains: [],
-        playbooks: [],
-        indexBudget:
-          config.budget.perTool[options.tool]?.indexBudget ||
-          config.budget.indexBudget,
-        contentBudget: 10000,
-        toolCapabilities: capabilities,
-      },
-      allContents,
-      config.project.name,
-      indexContents,
-    );
+    // ── Stage 2: 合并与冲突解决 ──
+    const { merged: mergedAll, conflicts } = assembleContents(allContents);
+    const { merged: mergedIndex } = assembleContents(indexContents);
 
-    if (options.dryRun) {
-      spinner.stop();
-      console.log(`${chalk.cyan("[dry-run]")}·将生成的索引内容：`);
-      console.log(output.index.content);
+    if (options.verbose && conflicts.length > 0) {
+      for (const conflict of conflicts) {
+        console.log(
+          chalk.dim(
+            `  冲突解决: ${conflict.id} — 保留 ${conflict.resolvedContent.sourcePath}`,
+          ),
+        );
+      }
+    }
+
+    // ── Stage 3: 排序 ──
+    const rankedAll = rankContents(mergedAll);
+    const rankedIndex = rankContents(mergedIndex);
+
+    // ── Stage 4: 任务解析（仅影响索引内容） ──
+    const taskResult = resolveTaskContents(rankedIndex, options.task);
+
+    if (options.verbose) {
       console.log(
-        `${chalk.cyan("[dry-run]")} 将写入 ${output.files.length} 个内容文件：`,
+        chalk.dim(
+          `  任务解析: ${taskResult.taskContents.length} 条相关，${taskResult.otherContents.length} 条无关`,
+        ),
       );
-      for (const f of output.files) {
-        console.log(`  ${f.path}`);
-      }
-      return;
     }
 
-    // 写入内容文件
-    for (const file of output.files) {
-      const fullPath = join(options.projectDir, file.path);
-      const dir = join(fullPath, "..");
-      if (!existsSync(dir)) {
-        mkdirSync(dir, { recursive: true });
-      }
-      writeFileSync(fullPath, file.content, "utf-8");
-    }
+    // ── Stage 5: 提取结构化 frontmatter ──
+    const frontmatters = extractFrontmatterFromContents(rankedAll);
 
-    // 写入索引文件
-    const indexPath = join(options.projectDir, output.index.path);
-    writeIndexFile(indexPath, output.index.content);
+    // ── Stage 6: 适配器渲染 ──
+    const tools = options.allTools
+      ? Object.entries(config.tooling)
+          .filter(([, v]) => v.enabled)
+          .map(([k]) => k)
+      : [options.tool];
+
+    for (const tool of tools) {
+      const adapter = await getAdapter(
+        tool as "claude-code" | "codex" | "trae" | "gemini",
+      );
+      const output = adapter.render(
+        {
+          task: options.task,
+          packages: installedPackages,
+          ...frontmatters,
+          indexBudget:
+            config.budget.perTool[tool]?.indexBudget ||
+            config.budget.indexBudget,
+          contentBudget: 10000,
+          toolCapabilities: adapter.capabilities,
+        },
+        rankedAll,
+        config.project.name,
+        rankedIndex,
+      );
+
+      if (options.dryRun) {
+        spinner.stop();
+        console.log(
+          `${chalk.cyan("[dry-run]")} 工具 ${tool} 将生成的索引内容：`,
+        );
+        console.log(output.index.content);
+        console.log(
+          `${chalk.cyan("[dry-run]")} 将写入 ${output.files.length} 个内容文件：`,
+        );
+        for (const f of output.files) {
+          console.log(`  ${f.path}`);
+        }
+        continue;
+      }
+
+      // 写入内容文件
+      for (const file of output.files) {
+        const fullPath = join(options.projectDir, file.path);
+        const dir = join(fullPath, "..");
+        if (!existsSync(dir)) {
+          mkdirSync(dir, { recursive: true });
+        }
+        writeFileSync(fullPath, file.content, "utf-8");
+      }
+
+      // 写入索引文件
+      const indexPath = join(options.projectDir, output.index.path);
+      writeIndexFile(indexPath, output.index.content);
+
+      if (options.verbose) {
+        console.log(chalk.dim(`  工具 ${tool}: 写入 ${output.files.length} 个内容文件`));
+        console.log(chalk.dim(`  索引文件: ${output.index.path}`));
+      }
+    }
 
     spinner.succeed("Build 完成");
-    for (const instruction of output.instructions) {
-      console.log(chalk.dim(`  ${instruction}`));
-    }
-    if (options.verbose) {
-      console.log(chalk.dim(`\n  写入 ${output.files.length} 个内容文件`));
-      console.log(chalk.dim(`  索引文件: ${output.index.path}`));
-    }
   } catch (err) {
     spinner.fail("Build 失败");
     throw err;

@@ -216,4 +216,51 @@ describe("buildCommand", () => {
     expect(existsSync(ruleFile)).toBe(true);
     expect(readFileSync(ruleFile, "utf-8")).toContain("Core Coding Standards");
   });
+
+  it("支持 --tool codex 生成 AGENTS.md", async () => {
+    await initCommand({
+      projectDir: TEST_DIR,
+      projectName: "test-project",
+      assetsDir: ASSETS_DIR,
+    });
+    await addCommand({
+      projectDir: TEST_DIR,
+      packageNames: ["@coder-2100/core-engineering"],
+      assetsDir: ASSETS_DIR,
+    });
+    await buildCommand({
+      projectDir: TEST_DIR,
+      task: "review",
+      tool: "codex",
+      assetsDir: ASSETS_DIR,
+    });
+    expect(existsSync(join(TEST_DIR, "AGENTS.md"))).toBe(true);
+    const content = readFileSync(join(TEST_DIR, "AGENTS.md"), "utf-8");
+    expect(content).toContain("core-coding-standards");
+  });
+
+  it("verbose 模式输出详细构建信息", async () => {
+    await initCommand({
+      projectDir: TEST_DIR,
+      projectName: "test-project",
+      assetsDir: ASSETS_DIR,
+    });
+    await addCommand({
+      projectDir: TEST_DIR,
+      packageNames: ["@coder-2100/core-engineering"],
+      assetsDir: ASSETS_DIR,
+    });
+    await buildCommand({
+      projectDir: TEST_DIR,
+      task: "review",
+      tool: "claude-code",
+      assetsDir: ASSETS_DIR,
+      verbose: true,
+    });
+    expect(
+      existsSync(
+        join(TEST_DIR, ".ai", "runtime", "rules", "core-coding-standards.md"),
+      ),
+    ).toBe(true);
+  });
 });

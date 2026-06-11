@@ -1,6 +1,5 @@
 import path from "node:path";
 import { Command } from "commander";
-import type { ToolName } from "./adapters/types";
 import { addCommand } from "./commands/add";
 import { buildCommand } from "./commands/build";
 import { cleanCommand } from "./commands/clean";
@@ -77,10 +76,11 @@ program
     await buildCommand({
       projectDir: process.cwd(),
       task: task || "review",
-      tool: opts.tool as ToolName,
+      tool: opts.tool,
       assetsDir,
       dryRun: opts.dryRun,
       verbose: opts.verbose,
+      allTools: opts.allTools,
     });
   });
 
