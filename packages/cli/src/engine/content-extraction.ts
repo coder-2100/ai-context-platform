@@ -122,3 +122,79 @@ export async function extractContent(
 
   return results;
 }
+
+/** 继承解析的最大深度，防止无限递归 */
+const MAX_EXTENDS_DEPTH = 5;
+
+/**
+ * 解析 extends 继承关系，合并父包的 appliesTo 到子包内容
+ * @param assetsDir 资产目录路径
+ * @param contents 子包的已提取内容
+ * @param extendsList 子包声明的继承包列表
+ * @param scope 包的 npm scope
+ * @param cacheDir 缓存目录路径
+ * @param depth 当前递归深度
+ */
+export async function resolveInheritedContent(
+  assetsDir: string | undefined,
+  contents: ExtractedContent[],
+  extendsList: string[],
+  scope = "@coder-2100",
+  cacheDir?: string,
+  depth = 0,
+): Promise<ExtractedContent[]> {
+  if (extendsList.length === 0 || depth >= MAX_EXTENDS_DEPTH) {
+    return contents;
+  }
+
+  const mergedAppliesTo = new Set<string>();
+  for (const c of contents) {
+    for (const task of c.appliesTo) {
+      mergedAppliesTo.add(task);
+    }
+  }
+
+  // 收集父包的 appliesTo
+  for (const parentName of extendsList) {
+    const parentContents = await extractContent(assetsDir, parentName, scope, cacheDir);
+    for (const pc of parentContents) {
+      for (const task of pc.appliesTo) {
+        mergedAppliesTo.add(task);
+      }
+    }
+
+    // 递归解析父包的 extends
+    if (parentContents.length > 0) {
+      const registry = new RegistryClient({ scope, registry: "" });
+      const shortName = toShortName(parentName, scope);
+      let parentManifest: import("@coder-2100/schema").Manifest | null = null;
+
+      if (assetsDir) {
+        parentManifest = await registry.getLocalManifest(assetsDir, shortName);
+      }
+
+      if (parentManifest && parentManifest.extends.length > 0) {
+        const resolvedParent = await resolveInheritedContent(
+          assetsDir,
+          parentContents,
+          parentManifest.extends,
+          scope,
+          cacheDir,
+          depth + 1,
+        );
+        for (const pc of resolvedParent) {
+          for (const task of pc.appliesTo) {
+            mergedAppliesTo.add(task);
+          }
+        }
+      }
+    }
+  }
+
+  // 合并 appliesTo 到子包内容
+  const allTasks = [...mergedAppliesTo];
+  return contents.map((c) => ({
+    ...c,
+    appliesTo: c.appliesTo.length === 0 ? allTasks : c.appliesTo,
+  }));
+}
