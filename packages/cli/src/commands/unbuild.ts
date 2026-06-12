@@ -7,6 +7,7 @@ import {
   MARKER_START,
   TOOL_INDEX_FILES,
   cleanRuntimeDir,
+  cleanTraeDir,
 } from "../engine/index-builder";
 
 /** unbuild 命令的选项 */
@@ -109,9 +110,15 @@ export async function unbuildCommand(options: UnbuildOptions): Promise<void> {
 
   // 逐个工具清理索引文件
   for (const tool of tools) {
-    const indexPath = TOOL_INDEX_FILES[tool];
-    if (!indexPath) {
+    if (!(tool in TOOL_INDEX_FILES)) {
       console.log(chalk.yellow(`  未知工具: ${tool}，跳过`));
+      continue;
+    }
+
+    const indexPath = TOOL_INDEX_FILES[tool];
+    // Trae 无索引文件（multi-md 格式）
+    if (!indexPath) {
+      console.log(chalk.dim(`  工具 ${tool}: 无索引文件（multi-md 格式）`));
       continue;
     }
 
@@ -120,14 +127,17 @@ export async function unbuildCommand(options: UnbuildOptions): Promise<void> {
     console.log(chalk.dim(`  工具 ${tool}: 索引文件 ${indexPath} 已清理`));
   }
 
-  // 仅 --all-tools 时清理 .ai/runtime/（内容文件是所有工具共享的，
+  // 仅 --all-tools 时清理共享内容目录（内容文件是所有工具共享的，
   // 指定单工具清理时不应删除，否则会破坏其他工具的上下文）
   if (options.allTools) {
     if (!dryRun) {
       cleanRuntimeDir(options.projectDir);
       console.log(chalk.dim("  .ai/runtime/ 内容文件已清理"));
+      cleanTraeDir(options.projectDir);
+      console.log(chalk.dim("  .trae/ 内容文件已清理"));
     } else {
       console.log(chalk.cyan("[dry-run] 将清理 .ai/runtime/ 内容文件"));
+      console.log(chalk.cyan("[dry-run] 将清理 .trae/ 内容文件"));
     }
   }
 
