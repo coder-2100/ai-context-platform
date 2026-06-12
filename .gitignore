@@ -8,6 +8,9 @@ CLAUDE.md
 .claude/
 .superpowers/
 
+.changesset/*.md
+!.changeset/README.md
+
 # 为文档自动生成的
 docs/src/.vitepress/cache/
 docs/src/.vitepress/dist/
