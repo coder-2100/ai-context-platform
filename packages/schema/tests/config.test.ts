@@ -62,7 +62,7 @@ describe("ConfigSchema", () => {
     });
     expect(result.tooling["claude-code"].enabled).toBe(true);
     expect(result.tooling.codex.enabled).toBe(true);
-    expect(result.tooling.trae.enabled).toBe(false);
+    expect(result.tooling.trae.enabled).toBe(true);
     expect(result.tooling.gemini.enabled).toBe(false);
   });
 });

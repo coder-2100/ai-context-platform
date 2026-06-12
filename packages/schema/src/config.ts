@@ -43,13 +43,13 @@ export const ConfigSchema = z.object({
         deploy: true,
       }),
       codex: ToolingEntrySchema.default({ enabled: true, deploy: true }),
-      trae: ToolingEntrySchema.default({ enabled: false, deploy: false }),
+      trae: ToolingEntrySchema.default({ enabled: true, deploy: true }),
       gemini: ToolingEntrySchema.default({ enabled: false, deploy: false }),
     })
     .default({
       "claude-code": { enabled: true, deploy: true },
       codex: { enabled: true, deploy: true },
-      trae: { enabled: false, deploy: false },
+      trae: { enabled: true, deploy: true },
       gemini: { enabled: false, deploy: false },
     }),
   budget: BudgetSchema,
