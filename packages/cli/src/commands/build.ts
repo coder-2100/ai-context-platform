@@ -1,6 +1,7 @@
 import {
   existsSync,
   mkdirSync,
+  readFileSync,
   readdirSync,
   rmSync,
   writeFileSync,
@@ -18,7 +19,13 @@ import {
   extractFrontmatterFromContents,
   resolveInheritedContent,
 } from "../engine/content-extraction";
-import { writeIndexFile } from "../engine/index-builder";
+import {
+  MARKER_END,
+  MARKER_START,
+  TOOL_INDEX_FILES,
+  cleanRuntimeDir,
+  writeIndexFile,
+} from "../engine/index-builder";
 import { rankContents } from "../engine/ranking";
 import { resolveTaskContents } from "../engine/task-resolver";
 
@@ -37,16 +44,46 @@ export interface BuildOptions {
   allTools?: boolean;
 }
 
-/** 清空 .ai/runtime/ 下各子目录中的文件，保留目录结构 */
-function cleanRuntimeDir(projectDir: string): void {
-  const runtimeDir = join(projectDir, ".ai", "runtime");
-  if (!existsSync(runtimeDir)) return;
-  for (const sub of readdirSync(runtimeDir, { withFileTypes: true })) {
-    if (sub.isDirectory()) {
-      const subDir = join(runtimeDir, sub.name);
-      for (const file of readdirSync(subDir, { withFileTypes: true })) {
-        rmSync(join(subDir, file.name), { recursive: true, force: true });
+/**
+ * 清理不属于当前构建工具的旧索引文件：
+ * 移除标记区域内的托管内容及配套的 # Project Context 标题，
+ * 若文件仅含托管内容则整体删除
+ */
+function cleanStaleIndexFiles(
+  projectDir: string,
+  activeTools: string[],
+): void {
+  for (const [tool, indexPath] of Object.entries(TOOL_INDEX_FILES)) {
+    if (activeTools.includes(tool)) continue;
+    const fullPath = join(projectDir, indexPath);
+    if (!existsSync(fullPath)) continue;
+
+    const content = readFileSync(fullPath, "utf-8");
+    const startIdx = content.indexOf(MARKER_START);
+    const endIdx = content.indexOf(MARKER_END);
+
+    // 无标记内容时，检查是否仅剩 # Project Context 残留（前次清理的遗留）
+    if (startIdx === -1 || endIdx === -1) {
+      if (content.trim() === "# Project Context") {
+        rmSync(fullPath, { force: true });
       }
+      continue;
+    }
+
+    const before = content.slice(0, startIdx).trim();
+    const after = content.slice(endIdx + MARKER_END.length).trim();
+
+    // # Project Context 标题由 writeIndexFile 生成，属于托管内容的一部分
+    const realUserContent =
+      before === "# Project Context" ? "" : before;
+
+    if (!realUserContent && !after) {
+      // 文件仅包含托管内容，删除整个文件
+      rmSync(fullPath, { force: true });
+    } else {
+      // 文件包含用户内容，仅移除托管区域
+      const parts = [realUserContent, after].filter(Boolean).join("\n\n");
+      writeFileSync(fullPath, `${parts}\n`, "utf-8");
     }
   }
 }
@@ -73,6 +110,18 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
     pm.loadExisting();
     const config = pm.getConfig();
     const installedPackages = pm.list() as ResolvedPackage[];
+
+    // 确定本次构建的目标工具列表
+    const activeTools = options.allTools
+      ? Object.entries(config.tooling)
+          .filter(([, v]) => v.enabled)
+          .map(([k]) => k)
+      : [options.tool];
+
+    // 清理不属于当前工具的旧索引文件
+    if (!options.dryRun) {
+      cleanStaleIndexFiles(options.projectDir, activeTools);
+    }
 
     if (installedPackages.length === 0) {
       spinner.warn("没有已安装的包。运行 ai-context add 安装包。");
@@ -149,13 +198,7 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
     const frontmatters = extractFrontmatterFromContents(rankedAll);
 
     // ── Stage 6: 适配器渲染 ──
-    const tools = options.allTools
-      ? Object.entries(config.tooling)
-          .filter(([, v]) => v.enabled)
-          .map(([k]) => k)
-      : [options.tool];
-
-    for (const tool of tools) {
+    for (const tool of activeTools) {
       const adapter = await getAdapter(
         tool as "claude-code" | "codex" | "trae" | "gemini",
       );

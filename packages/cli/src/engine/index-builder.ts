@@ -1,5 +1,12 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { dirname, join } from "node:path";
 import { encodingForModel } from "js-tiktoken";
 import { PRIORITY_WEIGHTS } from "@coder-2100/schema";
 import type { ExtractedContent } from "./content-extraction";
@@ -329,4 +336,25 @@ function groupByType(
     groups[c.type].push(c);
   }
   return groups;
+}
+
+/** 所有已知工具的索引文件路径 */
+export const TOOL_INDEX_FILES: Record<string, string> = {
+  "claude-code": "CLAUDE.md",
+  codex: "AGENTS.md",
+  // Phase 5: trae → .trae/rules/, gemini → GEMINI.md
+};
+
+/** 清空 .ai/runtime/ 下各子目录中的文件，保留目录结构 */
+export function cleanRuntimeDir(projectDir: string): void {
+  const runtimeDir = join(projectDir, ".ai", "runtime");
+  if (!existsSync(runtimeDir)) return;
+  for (const sub of readdirSync(runtimeDir, { withFileTypes: true })) {
+    if (sub.isDirectory()) {
+      const subDir = join(runtimeDir, sub.name);
+      for (const file of readdirSync(subDir, { withFileTypes: true })) {
+        rmSync(join(subDir, file.name), { recursive: true, force: true });
+      }
+    }
+  }
 }
