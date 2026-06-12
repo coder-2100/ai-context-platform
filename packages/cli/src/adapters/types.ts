@@ -31,12 +31,13 @@ export const TRAE_CAPABILITIES: ToolCapabilities = {
   contextFileFormat: "multi-md",
 };
 
-/** Gemini 的工具能力配置：128k token、多文件和图片支持 */
+/** Gemini 的工具能力配置：128k token、回退到 Codex 格式输出 AGENTS.md */
 export const GEMINI_CAPABILITIES: ToolCapabilities = {
   maxTokens: 128000,
   supportsMultiFile: true,
   supportsImages: true,
-  indexFileLocation: "GEMINI.md",
+  // Gemini 回退到 Codex 适配器，索引文件与 Codex 一致
+  indexFileLocation: "AGENTS.md",
   contentDirLocation: ".ai/runtime/",
   contextFileFormat: "index-plus-files",
 };
@@ -44,7 +45,7 @@ export const GEMINI_CAPABILITIES: ToolCapabilities = {
 /** 支持的 AI 工具名称 */
 export type ToolName = "claude-code" | "codex" | "trae" | "gemini";
 
-/** 根据工具名称获取对应的能力配置 */
+/** 根据工具名称获取对应的能力配置；gemini 返回回退 Codex 的配置 */
 export function getCapabilities(tool: ToolName): ToolCapabilities {
   switch (tool) {
     case "claude-code":
@@ -69,10 +70,15 @@ export async function getAdapter(tool: ToolName): Promise<Adapter> {
       const { CodexAdapter } = await import("./codex");
       return new CodexAdapter();
     }
+    case "trae": {
+      const { TraeAdapter } = await import("./trae");
+      return new TraeAdapter();
+    }
+    case "gemini":
     default: {
-      // trae 和 gemini 将在 Phase 5 实现，暂回退到 claude-code
-      const { ClaudeCodeAdapter } = await import("./claude");
-      return new ClaudeCodeAdapter();
+      // Gemini 及未知工具回退到 Codex 模式（AGENTS.md 格式）
+      const { CodexAdapter } = await import("./codex");
+      return new CodexAdapter();
     }
   }
 }
