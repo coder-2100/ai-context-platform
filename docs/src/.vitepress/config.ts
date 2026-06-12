@@ -13,7 +13,10 @@ export default defineConfig({
     ],
 
     sidebar: {
-      "/cli/": [{ text: "快速开始", link: "/cli/getting-started" }],
+      "/cli/": [
+        { text: "快速开始", link: "/cli/getting-started" },
+        { text: "工具适配", link: "/cli/adapters" },
+      ],
       "/assets/": [{ text: "总览", link: "/assets/overview" }],
       "/architecture/": [{ text: "总览", link: "/architecture/overview" }],
     },
