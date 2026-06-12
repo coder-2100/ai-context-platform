@@ -1,5 +1,16 @@
 # @coder-2100/cli
 
+## 0.2.0-beta.9
+
+### Minor Changes
+
+- 修复多工具场景
+
+### Patch Changes
+
+- Updated dependencies
+  - @coder-2100/schema@0.2.0-beta.6
+
 ## 0.2.0-beta.8
 
 ### Minor Changes
