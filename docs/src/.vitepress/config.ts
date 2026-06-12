@@ -18,7 +18,10 @@ export default defineConfig({
         { text: "工具适配", link: "/cli/adapters" },
       ],
       "/assets/": [{ text: "总览", link: "/assets/overview" }],
-      "/architecture/": [{ text: "总览", link: "/architecture/overview" }],
+      "/architecture/": [
+        { text: "总览", link: "/architecture/overview" },
+        { text: "Adapter 系统", link: "/architecture/adapter-system" },
+      ],
     },
 
     search: {
