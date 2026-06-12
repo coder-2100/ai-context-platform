@@ -64,15 +64,13 @@ describe("initCommand", () => {
     ).rejects.toThrow();
   });
 
-  it("创建 CLAUDE.md 标记区域", async () => {
+  it("init 不创建索引文件（索引文件由 build 命令按工具生成）", async () => {
     await initCommand({
       projectDir: TEST_DIR,
       projectName: "test-project",
       assetsDir: ASSETS_DIR,
     });
-    expect(existsSync(join(TEST_DIR, "CLAUDE.md"))).toBe(true);
-    const content = readFileSync(join(TEST_DIR, "CLAUDE.md"), "utf-8");
-    expect(content).toContain("<!-- AI-CONTEXT:INDEX:START -->");
-    expect(content).toContain("<!-- AI-CONTEXT:INDEX:END -->");
+    expect(existsSync(join(TEST_DIR, "CLAUDE.md"))).toBe(false);
+    expect(existsSync(join(TEST_DIR, "AGENTS.md"))).toBe(false);
   });
 });

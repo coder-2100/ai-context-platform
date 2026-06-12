@@ -3,7 +3,6 @@ import { join } from "node:path";
 import chalk from "chalk";
 import { PackageManager } from "../core/package-manager";
 import { loadConfig } from "../core/config";
-import { writeIndexFile } from "../engine/index-builder";
 
 /** init 命令的选项 */
 export interface InitOptions {
@@ -14,7 +13,7 @@ export interface InitOptions {
   scope?: string;
 }
 
-/** 初始化项目：创建 .ai/ 目录结构、config.yaml 和 CLAUDE.md 索引文件 */
+/** 初始化项目：创建 .ai/ 目录结构和 config.yaml，索引文件在 build 命令中按目标工具生成 */
 export async function initCommand(options: InitOptions): Promise<void> {
   const aiDir = join(options.projectDir, ".ai");
   if (existsSync(join(aiDir, "config.yaml"))) {
@@ -28,20 +27,15 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
   await pm.init(options.projectName, options.assetsDir);
 
-  // 创建 CLAUDE.md 标记区域
-  const claudeMdPath = join(options.projectDir, "CLAUDE.md");
-  writeIndexFile(
-    claudeMdPath,
-    "No packages installed yet. Run `ai-context add` to get started.",
-  );
-
   console.log(chalk.green("✓ 项目已初始化"));
   console.log(`  创建 ${chalk.cyan(".ai/")} 目录结构`);
-  console.log(`  创建 ${chalk.cyan("CLAUDE.md")} 索引文件`);
   if (options.assetsDir) {
     console.log(`  资产目录设置为 ${chalk.cyan(options.assetsDir)}`);
   }
   console.log(`\n运行 ${chalk.yellow("ai-context add")} 安装知识资产包`);
+  console.log(
+    `运行 ${chalk.yellow("ai-context build")} 生成运行时上下文和索引文件`,
+  );
 }
 
 /** 解析资产目录路径，优先级：CLI 参数 > config.yaml 配置 > 返回 undefined（将使用 npm） */

@@ -29,7 +29,7 @@ describe("端到端流程", () => {
         assetsDir: ASSETS_DIR,
       });
       expect(existsSync(join(TEST_DIR, ".ai", "config.yaml"))).toBe(true);
-      expect(existsSync(join(TEST_DIR, "CLAUDE.md"))).toBe(true);
+      // 索引文件在 build 命令中按目标工具生成，init 不再创建
 
       // 2. add react-rules（会自动安装 core-engineering 依赖）
       await addCommand({

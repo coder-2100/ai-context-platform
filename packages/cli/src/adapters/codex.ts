@@ -25,13 +25,13 @@ export class CodexAdapter implements Adapter {
     indexOnlyContents?: ExtractedContent[],
   ): AdapterOutput {
     const indexTarget = indexOnlyContents ?? contents;
-    const indexContent = `# Project Context\n\n${buildIndex({
+    const indexContent = buildIndex({
       contents: indexTarget,
       task: input.task,
       projectName,
       runtimeDir: ".ai/runtime",
       indexBudget: input.indexBudget,
-    })}`;
+    });
 
     const files: ContentFile[] = contents.map((c) => ({
       type: c.type,
