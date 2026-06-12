@@ -1,5 +1,12 @@
 # @coder-2100/cli
 
+## 0.2.0-beta.10
+
+### Minor Changes
+
+- 增加工具支持
+- 5964ce3: 新增 Trae adapter（multi-md 格式）、Gemini 回退 Codex 策略、.trae/ 目录支持
+
 ## 0.2.0-beta.9
 
 ### Minor Changes
