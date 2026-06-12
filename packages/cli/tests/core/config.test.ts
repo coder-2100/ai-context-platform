@@ -25,7 +25,7 @@ describe("createDefaultConfig", () => {
     expect(config.packages).toEqual([]);
     expect(config.tooling["claude-code"].enabled).toBe(true);
     expect(config.tooling.codex.enabled).toBe(true);
-    expect(config.tooling.trae.enabled).toBe(false);
+    expect(config.tooling.trae.enabled).toBe(true);
     expect(config.tooling.gemini.enabled).toBe(false);
     expect(config.budget.indexBudget).toBe(3000);
   });
