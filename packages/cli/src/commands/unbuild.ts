@@ -120,12 +120,15 @@ export async function unbuildCommand(options: UnbuildOptions): Promise<void> {
     console.log(chalk.dim(`  工具 ${tool}: 索引文件 ${indexPath} 已清理`));
   }
 
-  // 清理 .ai/runtime/ 内容文件
-  if (!dryRun) {
-    cleanRuntimeDir(options.projectDir);
-    console.log(chalk.dim("  .ai/runtime/ 内容文件已清理"));
-  } else {
-    console.log(chalk.cyan("[dry-run] 将清理 .ai/runtime/ 内容文件"));
+  // 仅 --all-tools 时清理 .ai/runtime/（内容文件是所有工具共享的，
+  // 指定单工具清理时不应删除，否则会破坏其他工具的上下文）
+  if (options.allTools) {
+    if (!dryRun) {
+      cleanRuntimeDir(options.projectDir);
+      console.log(chalk.dim("  .ai/runtime/ 内容文件已清理"));
+    } else {
+      console.log(chalk.cyan("[dry-run] 将清理 .ai/runtime/ 内容文件"));
+    }
   }
 
   console.log(chalk.green("\n✓ Unbuild 完成"));

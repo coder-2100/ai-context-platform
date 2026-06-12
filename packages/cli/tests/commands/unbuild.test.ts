@@ -125,7 +125,22 @@ describe("unbuildCommand", () => {
     expect(existsSync(join(TEST_DIR, "AGENTS.md"))).toBe(false);
   });
 
-  it("同时清理 .ai/runtime/ 内容文件", async () => {
+  it("--all-tools 同时清理 .ai/runtime/ 内容文件", async () => {
+    await setupProject("claude-code");
+    expect(
+      existsSync(join(TEST_DIR, ".ai", "runtime", "rules", "core-coding-standards.md")),
+    ).toBe(true);
+
+    await unbuildCommand({
+      projectDir: TEST_DIR,
+      allTools: true,
+    });
+    expect(
+      existsSync(join(TEST_DIR, ".ai", "runtime", "rules", "core-coding-standards.md")),
+    ).toBe(false);
+  });
+
+  it("--tool 不清理 .ai/runtime/（内容文件为所有工具共享）", async () => {
     await setupProject("claude-code");
     expect(
       existsSync(join(TEST_DIR, ".ai", "runtime", "rules", "core-coding-standards.md")),
@@ -135,9 +150,10 @@ describe("unbuildCommand", () => {
       projectDir: TEST_DIR,
       tool: "claude-code",
     });
+    // runtime 内容文件应保留
     expect(
       existsSync(join(TEST_DIR, ".ai", "runtime", "rules", "core-coding-standards.md")),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it("--dry-run 不实际删除", async () => {
