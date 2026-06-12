@@ -16,7 +16,11 @@ import {
   extractFrontmatterFromContents,
   resolveInheritedContent,
 } from "../engine/content-extraction";
-import { cleanRuntimeDir, writeIndexFile } from "../engine/index-builder";
+import {
+  cleanRuntimeDir,
+  cleanTraeDir,
+  writeIndexFile,
+} from "../engine/index-builder";
 import { rankContents } from "../engine/ranking";
 import { resolveTaskContents } from "../engine/task-resolver";
 
@@ -36,6 +40,14 @@ export interface BuildOptions {
 }
 
 /**
+ * 判断工具名是否为回退到 Codex 的工具（gemini 或其他未特化适配器的工具）
+ * 命中时使用 CodexAdapter 渲染并输出 AGENTS.md
+ */
+function isCodexFallback(tool: string): boolean {
+  return tool !== "claude-code" && tool !== "codex" && tool !== "trae";
+}
+
+/**
  * 构建运行时上下文，串联完整 Pipeline：
  * Stage 1 内容提取 → Stage 2 合并与冲突解决 → Stage 3 排序 →
  * Stage 4 任务解析 → Stage 5 提取 frontmatter → Stage 6 适配器渲染
@@ -47,6 +59,7 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
     // 干跑模式不清理也不写入
     if (!options.dryRun) {
       cleanRuntimeDir(options.projectDir);
+      cleanTraeDir(options.projectDir);
     }
 
     const pm = new PackageManager({
@@ -141,6 +154,14 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
       : [options.tool];
 
     for (const tool of tools) {
+      // 回退提示：gemini 或其他未特化适配器的工具回退到 Codex 渲染（AGENTS.md 格式）
+      if (isCodexFallback(tool)) {
+        console.log(
+          chalk.blue(
+            `ℹ Tool "${tool}" uses Codex adapter (AGENTS.md format)`,
+          ),
+        );
+      }
       const adapter = await getAdapter(
         tool as "claude-code" | "codex" | "trae" | "gemini",
       );
@@ -162,10 +183,16 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
 
       if (options.dryRun) {
         spinner.stop();
-        console.log(
-          `${chalk.cyan("[dry-run]")} 工具 ${tool} 将生成的索引内容：`,
-        );
-        console.log(output.index.content);
+        if (output.index.path) {
+          console.log(
+            `${chalk.cyan("[dry-run]")} 工具 ${tool} 将生成的索引内容：`,
+          );
+          console.log(output.index.content);
+        } else {
+          console.log(
+            `${chalk.cyan("[dry-run]")} 工具 ${tool} 无索引文件（multi-md 格式）`,
+          );
+        }
         console.log(
           `${chalk.cyan("[dry-run]")} 将写入 ${output.files.length} 个内容文件：`,
         );
@@ -185,13 +212,19 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
         writeFileSync(fullPath, file.content, "utf-8");
       }
 
-      // 写入索引文件
-      const indexPath = join(options.projectDir, output.index.path);
-      writeIndexFile(indexPath, output.index.content);
+      // 写入索引文件（Trae 等无索引文件工具时 path 为空，跳过写入）
+      if (output.index.path) {
+        const indexPath = join(options.projectDir, output.index.path);
+        writeIndexFile(indexPath, output.index.content);
+      }
 
       if (options.verbose) {
         console.log(chalk.dim(`  工具 ${tool}: 写入 ${output.files.length} 个内容文件`));
-        console.log(chalk.dim(`  索引文件: ${output.index.path}`));
+        if (output.index.path) {
+          console.log(chalk.dim(`  索引文件: ${output.index.path}`));
+        } else {
+          console.log(chalk.dim(`  无索引文件（multi-md 格式）`));
+        }
       }
     }
 

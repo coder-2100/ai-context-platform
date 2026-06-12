@@ -338,11 +338,12 @@ function groupByType(
   return groups;
 }
 
-/** 所有已知工具的索引文件路径 */
+/** 所有已知工具的索引文件路径；空字符串表示该工具无索引文件（如 Trae multi-md 格式） */
 export const TOOL_INDEX_FILES: Record<string, string> = {
   "claude-code": "CLAUDE.md",
   codex: "AGENTS.md",
-  // Phase 5: trae → .trae/rules/, gemini → GEMINI.md
+  trae: "",              // Trae 无索引文件（multi-md 格式）
+  gemini: "AGENTS.md",   // Gemini 回退到 AGENTS.md
 };
 
 /** 清空 .ai/runtime/ 下各子目录中的文件，保留目录结构 */
@@ -352,6 +353,20 @@ export function cleanRuntimeDir(projectDir: string): void {
   for (const sub of readdirSync(runtimeDir, { withFileTypes: true })) {
     if (sub.isDirectory()) {
       const subDir = join(runtimeDir, sub.name);
+      for (const file of readdirSync(subDir, { withFileTypes: true })) {
+        rmSync(join(subDir, file.name), { recursive: true, force: true });
+      }
+    }
+  }
+}
+
+/** 清空 .trae/ 目录下各子目录中的文件，保留目录结构（用于 Trae multi-md 格式的增量构建） */
+export function cleanTraeDir(projectDir: string): void {
+  const traeDir = join(projectDir, ".trae");
+  if (!existsSync(traeDir)) return;
+  for (const sub of readdirSync(traeDir, { withFileTypes: true })) {
+    if (sub.isDirectory()) {
+      const subDir = join(traeDir, sub.name);
       for (const file of readdirSync(subDir, { withFileTypes: true })) {
         rmSync(join(subDir, file.name), { recursive: true, force: true });
       }
