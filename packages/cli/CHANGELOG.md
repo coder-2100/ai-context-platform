@@ -1,5 +1,16 @@
 # @coder-2100/cli
 
+## 0.2.0-beta.11
+
+### Minor Changes
+
+- 默认开启对 trae 的支持
+
+### Patch Changes
+
+- Updated dependencies
+  - @coder-2100/schema@0.2.0-beta.7
+
 ## 0.2.0-beta.10
 
 ### Minor Changes

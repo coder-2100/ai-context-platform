@@ -1,5 +1,11 @@
 # @coder-2100/schema
 
+## 0.2.0-beta.7
+
+### Minor Changes
+
+- 默认开启对 trae 的支持
+
 ## 0.2.0-beta.6
 
 ### Minor Changes

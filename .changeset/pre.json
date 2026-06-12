@@ -12,7 +12,7 @@
     "@coder-2100/reviewer-agent": "0.1.0"
   },
   "changesets": [
-    "lucky-socks-flash",
+    "cozy-sails-change",
     "phase5-multi-tool-adapters"
   ]
 }
