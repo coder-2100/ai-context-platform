@@ -12,6 +12,7 @@
     "@coder-2100/reviewer-agent": "0.1.0"
   },
   "changesets": [
-    "smart-states-switch"
+    "lucky-socks-flash",
+    "phase5-multi-tool-adapters"
   ]
 }
