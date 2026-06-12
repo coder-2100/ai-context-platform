@@ -80,7 +80,8 @@ describe("ClaudeCodeAdapter", () => {
 
     const output = adapter.render(input, mockContents, "my-project");
     expect(output.index.path).toBe("CLAUDE.md");
-    expect(output.index.content).toContain("Project Context");
+    expect(output.index.content).toContain("Core Rules");
+    expect(output.index.content).toContain("core-coding-standards");
     expect(output.files).toHaveLength(2);
     expect(output.files[0].type).toBe("rule");
     expect(output.files[0].id).toBe("core-coding-standards");
