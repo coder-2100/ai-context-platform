@@ -6,6 +6,7 @@ import { cleanCommand } from "./commands/clean";
 import { initCommand, resolveAssetsDir } from "./commands/init";
 import { listCommand } from "./commands/list";
 import { removeCommand } from "./commands/remove";
+import { unbuildCommand } from "./commands/unbuild";
 
 const program = new Command();
 
@@ -81,6 +82,23 @@ program
       dryRun: opts.dryRun,
       verbose: opts.verbose,
       allTools: opts.allTools,
+    });
+  });
+
+program
+  .command("unbuild")
+  .description("清理构建产物的索引文件和 runtime 内容")
+  .option("--tool <tool>", "清理指定工具的索引文件")
+  .option("--all-tools", "清理所有已启用工具的索引文件")
+  .option("--force", "删除整个索引文件而非仅清理标记区域")
+  .option("--dry-run", "仅预览将清理的内容，不实际操作")
+  .action(async (opts) => {
+    await unbuildCommand({
+      projectDir: process.cwd(),
+      tool: opts.tool,
+      allTools: opts.allTools,
+      force: opts.force,
+      dryRun: opts.dryRun,
     });
   });
 
