@@ -20,12 +20,13 @@ export const CODEX_CAPABILITIES: ToolCapabilities = {
   contextFileFormat: "index-plus-files",
 };
 
-/** Trae 的工具能力配置：64k token、多文件和图片支持、多 md 格式 */
+/** Trae 的工具能力配置：64k token、多文件和图片支持、多 md 格式（无索引文件） */
 export const TRAE_CAPABILITIES: ToolCapabilities = {
   maxTokens: 64000,
   supportsMultiFile: true,
   supportsImages: true,
-  indexFileLocation: ".trae/rules/",
+  // Trae 使用 multi-md 格式，无独立的索引文件，因此 indexFileLocation 留空
+  indexFileLocation: "",
   contentDirLocation: ".trae/",
   contextFileFormat: "multi-md",
 };
