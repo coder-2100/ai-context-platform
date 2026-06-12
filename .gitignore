@@ -8,7 +8,7 @@ CLAUDE.md
 .claude/
 .superpowers/
 
-.changesset/*.md
+.changeset/*.md
 !.changeset/README.md
 
 # 为文档自动生成的
