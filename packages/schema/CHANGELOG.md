@@ -1,5 +1,11 @@
 # @coder-2100/schema
 
+## 0.2.0-beta.5
+
+### Minor Changes
+
+- 修复多工具场景
+
 ## 0.2.0-beta.4
 
 ### Patch Changes
