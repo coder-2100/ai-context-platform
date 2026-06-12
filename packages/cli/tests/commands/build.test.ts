@@ -85,10 +85,9 @@ describe("buildCommand", () => {
       projectName: "test-project",
       assetsDir: ASSETS_DIR,
     });
-    // 手动添加用户内容
+    // 手动创建带用户内容的 CLAUDE.md
     const claudeMd = join(TEST_DIR, "CLAUDE.md");
-    const original = readFileSync(claudeMd, "utf-8");
-    const userContent = `${original}\n\n## My Custom Section\nCustom content here.`;
+    const userContent = `## My Custom Section\nCustom content here.`;
     require("node:fs").writeFileSync(claudeMd, userContent, "utf-8");
 
     await addCommand({
@@ -262,5 +261,36 @@ describe("buildCommand", () => {
         join(TEST_DIR, ".ai", "runtime", "rules", "core-coding-standards.md"),
       ),
     ).toBe(true);
+  });
+
+  it("--tool codex 不自动清理 CLAUDE.md", async () => {
+    await initCommand({
+      projectDir: TEST_DIR,
+      projectName: "test-project",
+      assetsDir: ASSETS_DIR,
+    });
+    await addCommand({
+      projectDir: TEST_DIR,
+      packageNames: ["@coder-2100/core-engineering"],
+      assetsDir: ASSETS_DIR,
+    });
+    // 先构建 claude-code
+    await buildCommand({
+      projectDir: TEST_DIR,
+      task: "review",
+      tool: "claude-code",
+      assetsDir: ASSETS_DIR,
+    });
+    expect(existsSync(join(TEST_DIR, "CLAUDE.md"))).toBe(true);
+
+    // 再构建 codex，CLAUDE.md 应保留
+    await buildCommand({
+      projectDir: TEST_DIR,
+      task: "review",
+      tool: "codex",
+      assetsDir: ASSETS_DIR,
+    });
+    expect(existsSync(join(TEST_DIR, "CLAUDE.md"))).toBe(true);
+    expect(existsSync(join(TEST_DIR, "AGENTS.md"))).toBe(true);
   });
 });
