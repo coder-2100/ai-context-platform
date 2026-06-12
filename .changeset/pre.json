@@ -5,16 +5,13 @@
     "@coder-2100/core-engineering": "1.0.0",
     "@coder-2100/react-rules": "1.0.0",
     "@coder-2100/cli": "0.1.0",
-    "@coder-2100/schema": "0.1.0"
+    "@coder-2100/schema": "0.1.0",
+    "@coder-2100/backend-security": "0.1.0",
+    "@coder-2100/migration-playbook": "0.1.0",
+    "@coder-2100/payment-domain": "0.1.0",
+    "@coder-2100/reviewer-agent": "0.1.0"
   },
   "changesets": [
-    "big-boxes-repeat",
-    "global-cache-migration",
-    "heavy-cougars-scream",
-    "honest-llamas-invent",
-    "huge-readers-report",
-    "little-adults-beam",
-    "metal-stamps-beam",
-    "swift-teeth-warn"
+    "lovely-webs-lie"
   ]
 }
