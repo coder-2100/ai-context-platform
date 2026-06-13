@@ -1,4 +1,5 @@
 import path from "node:path";
+import { readFileSync } from "node:fs";
 import { Command } from "commander";
 import { addCommand } from "./commands/add";
 import { buildCommand } from "./commands/build";
@@ -8,12 +9,24 @@ import { listCommand } from "./commands/list";
 import { removeCommand } from "./commands/remove";
 import { unbuildCommand } from "./commands/unbuild";
 
+// 从同包 package.json 读取元数据，作为 CLI 命令名与版本号的唯一来源
+const pkg: { bin: Record<string, string>; version: string } = JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
+);
+// CLI 注册的可执行命令名（取 package.json 的 bin 字段第一个 key）
+const commandName = Object.keys(pkg.bin)[0];
+if (!commandName) {
+  throw new Error("package.json 缺少 bin 字段，无法确定 CLI 命令名");
+}
+// CLI 版本号（与 package.json 的 version 字段保持一致）
+const cliVersion = pkg.version;
+
 const program = new Command();
 
 program
-  .name("ai-context")
+  .name(commandName)
   .description("AI Context Platform CLI — 结构化 Prompt 管理 + 运行时组装")
-  .version("0.1.0");
+  .version(cliVersion);
 
 program
   .command("init")
