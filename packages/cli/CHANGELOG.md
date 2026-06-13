@@ -1,5 +1,11 @@
 # @coder-2100/cli
 
+## 0.2.0-beta.12
+
+### Minor Changes
+
+- 修复 version 指令
+
 ## 0.2.0-beta.11
 
 ### Minor Changes
