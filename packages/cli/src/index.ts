@@ -67,7 +67,7 @@ program
 program
   .command("build [task]")
   .description("构建运行时上下文")
-  .option("--tool <tool>", "目标工具", "claude-code")
+  .option("--tool <tool>", "目标工具", "codex")
   .option("--all-tools", "为所有已启用的工具生成")
   .option("--dry-run", "仅预览，不写入文件")
   .option("--verbose", "详细输出")
